@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "module_servo.h": "c",
+        "controller.h": "c",
+        "task_init.h": "c",
+        "main.h": "c",
+        "oled.h": "c",
+        "math.h": "c",
+        "daemon.h": "c",
+        "compare": "c",
+        "cstdint": "c"
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "python-envs.pythonProjects": []
+}

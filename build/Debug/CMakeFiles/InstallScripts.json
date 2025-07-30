@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/belfry/stm32prj/elec-cdemo/build/Debug/cmake_install.cmake",
+		"C:/Users/belfry/stm32prj/elec-cdemo/build/Debug/cmake/stm32cubemx/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
