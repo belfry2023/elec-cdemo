@@ -224,12 +224,12 @@ void Calibrate_MPU_Offset(IMU_Data_t *bmi088)
         caliCount++;
     } while (gNormDiff > 0.5f ||
              fabsf(bmi088->gNorm - 9.8f) > 0.5f ||
-             gyroDiff[0] > 0.3f ||
-             gyroDiff[1] > 0.3f ||
-             gyroDiff[2] > 0.3f ||
-             fabsf(bmi088->GyroOffset[0]) > 0.01f ||
-             fabsf(bmi088->GyroOffset[1]) > 0.01f ||
-             fabsf(bmi088->GyroOffset[2]) > 0.01f);
+             gyroDiff[0] > 0.5f ||
+             gyroDiff[1] > 0.5f ||
+             gyroDiff[2] > 0.5f ||
+             fabsf(bmi088->GyroOffset[0]) > 0.05f ||
+             fabsf(bmi088->GyroOffset[1]) > 0.05f ||
+             fabsf(bmi088->GyroOffset[2]) > 0.05f);
 
     bmi088->AccelScale = 9.81f / bmi088->gNorm;
 }

@@ -58,6 +58,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/algorithm/kalman_filter.c
     Modules/algorithm/QuaternionEKF.c
     Modules/algorithm/user_lib.c
+    Modules/buffer/buffer.c
     Modules/imu/BMI088_driver.c
     Modules/imu/BMI088.c
     Modules/imu/ins_task.c
@@ -70,6 +71,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/motor/DJImotor/dji_motor.c
     Modules/motor/520motor/520motor.c
     Modules/motor/DMmotor/dmmotor.c
+    Modules/laser/module_laser.c
     Modules/ui/module_ui.c
     Modules/dm-imu/module_dm-imu.c
     Application/task_init.c
@@ -102,6 +104,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/motor/520motor
     Modules/ui
     Modules/dm-imu
+    Modules/laser
+    Modules/buffer
     Application
     Application/chassis
     Application/cmd

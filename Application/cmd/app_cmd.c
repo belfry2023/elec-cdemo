@@ -3,7 +3,8 @@
 #include "message_center.h"
 #include "task_def.h"
 #include "string.h"
-
+#include "buffer.h"
+// #include "module_laser.h"
 #include "arm_math.h"
 #include "OLED.h"
 static Publisher_t *chassis_cmd_pub;            
@@ -18,10 +19,11 @@ static chassis_state_t chassis_fetch_data;
 static chassis_control_t chassis_cmd_send;      
 static CMD_Ctrl_UI_s cmd_ui_recv;
 static CMD_Upload_UI_s cmd_feedback_ui;
-
+// static laser_t *Laser;
 static K230_data_t *K230_data;
-static float yaw_cmd = 20, pitch_cmd = -180;
-
+static float yaw_cmd, pitch_cmd;
+static buf_t *buffer_yaw, *buffer_pitch;
+static float aligned_total_yaw, aligned_total_pitch;
 
 static float pitch_sin[500] = {
 9.000000000000000000e+01,
@@ -2038,6 +2040,15 @@ static float pitch_circle[500] = {
 void cmd_init()
 {
     K230_data = K230ProtocolInit(&huart1);
+    // laser_c laser_config = {
+    //     .laser_tim_driver = &htim3,
+    //     .Channel = TIM_CHANNEL_3
+    // };
+    // Laser = laser_init(&laser_config);
+    // laser_disable();
+    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
+    buffer_yaw = BUFRegister();
+    buffer_pitch = BUFRegister();
     chassis_cmd_pub = PubRegister("chassis_control", sizeof(chassis_control_t));
     chassis_feed_sub = SubRegister("chassis_state", sizeof(chassis_state_t));
     gimbal_cmd_pub = PubRegister("gimbal_cmd", sizeof(Gimbal_Ctrl_Cmd_s));
@@ -2054,10 +2065,41 @@ void cmd_init()
 
 static void K230_todo()
 {
-    yaw_cmd = 0.1586 * K230_data->color_det.x + gimbal_fetch_data.yaw;
-    pitch_cmd = - 0.1586 * K230_data->color_det.y + gimbal_fetch_data.pitch;
-    pitch_cmd = pitch_cmd > 135 ? 135 : pitch_cmd;
-    pitch_cmd = pitch_cmd < -210 ? -210 : pitch_cmd;
+    gimbal_cmd_send.gimbal_task = K230_data->color_det.w;
+    if(K230_data->color_det.x < 320 &&
+        K230_data->color_det.y < 240 && 
+        K230_data->color_det.x > -320 && 
+        K230_data->color_det.y > -240 && 
+        (K230_data->color_det.x || K230_data->color_det.y))
+    {
+        if(K230_data->color_det.x < 5 && K230_data->color_det.x > -5 && K230_data->color_det.y < 5 && K230_data->color_det.y > -5)
+        {
+            // laser_enable();
+            HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_SET);
+        }else{
+            // laser_disable();
+            // HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
+        }
+        yaw_cmd = 0.11 * K230_data->color_det.x + aligned_total_yaw;
+        pitch_cmd = - 0.11 * K230_data->color_det.y + aligned_total_pitch;
+    }else
+    {
+        // HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
+        // static uint8_t time;
+        // time++;
+        // time%=100;
+        // if(time<50)
+        // {
+        //     yaw_cmd += 0.016;
+        //     pitch_cmd += 0.016;
+        // }else
+        // {
+        //     yaw_cmd -= 0.016;
+        //     pitch_cmd -= 0.016;
+        // }
+    }
+    pitch_cmd = pitch_cmd < -60 ? -60 : pitch_cmd;
+    pitch_cmd = pitch_cmd > 30 ? 30 : pitch_cmd;
 }
 
 static void task_sin()
@@ -2077,8 +2119,8 @@ static void task_circle()
     static uint16_t time;
     time++;
     time %= 500;
-    pitch_cmd = pitch_circle[time]/10 - 10;
-    yaw_cmd = yaw_circle[time]/10 + 120;
+    pitch_cmd = pitch_circle[time]/10;
+    yaw_cmd = yaw_circle[time]/10;
 }
 
 void cmd_task()
@@ -2086,7 +2128,9 @@ void cmd_task()
     SubGetMessage(gimbal_feed_sub, &gimbal_fetch_data);
     SubGetMessage(chassis_feed_sub, &chassis_fetch_data);
     SubGetMessage(cmd_ui_sub,&cmd_ui_recv);
-    // K230_todo();
+    aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 2);
+    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 2);
+    K230_todo();
     // task_sin();
     // task_circle();
     gimbal_cmd_send.pitch = pitch_cmd;

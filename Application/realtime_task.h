@@ -39,11 +39,11 @@ void OSTaskInit()
 
 __attribute__((noreturn)) void StartINSTASK(void const *argument)
 {
-    // INS_Init(); // 确保BMI088被正确初始化.
+    INS_Init(); // 确保BMI088被正确初始化.
     for (;;)
     {
-        // INS_Task();
-        IMU_Task();
+        INS_Task();
+        // IMU_Task();
         osDelay(1);
     }
 }

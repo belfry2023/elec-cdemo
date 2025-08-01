@@ -50,7 +50,7 @@
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 83,
+				"line" : 85,
 				"parent" : 0
 			},
 			{
@@ -175,6 +175,14 @@
 				},
 				{
 					"backtrace" : 5,
+					"path" : "C:/Users/belfry/stm32prj/elec-cdemo/Modules/laser"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/belfry/stm32prj/elec-cdemo/Modules/buffer"
+				},
+				{
+					"backtrace" : 5,
 					"path" : "C:/Users/belfry/stm32prj/elec-cdemo/Application"
 				},
 				{
@@ -286,7 +294,9 @@
 				43,
 				44,
 				45,
-				46
+				46,
+				47,
+				48
 			]
 		},
 		{
@@ -392,6 +402,14 @@
 				{
 					"backtrace" : 5,
 					"path" : "C:/Users/belfry/stm32prj/elec-cdemo/Modules/dm-imu"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/belfry/stm32prj/elec-cdemo/Modules/laser"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/belfry/stm32prj/elec-cdemo/Modules/buffer"
 				},
 				{
 					"backtrace" : 5,
@@ -557,7 +575,9 @@
 				43,
 				44,
 				45,
-				46
+				46,
+				47,
+				48
 			]
 		},
 		{
@@ -571,8 +591,6 @@
 			"name" : "Object Libraries",
 			"sourceIndexes" : 
 			[
-				47,
-				48,
 				49,
 				50,
 				51,
@@ -601,7 +619,9 @@
 				74,
 				75,
 				76,
-				77
+				77,
+				78,
+				79
 			]
 		}
 	],
@@ -778,6 +798,12 @@
 		{
 			"backtrace" : 7,
 			"compileGroupIndex" : 0,
+			"path" : "Modules/buffer/buffer.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 7,
+			"compileGroupIndex" : 0,
 			"path" : "Modules/imu/BMI088_driver.c",
 			"sourceGroupIndex" : 0
 		},
@@ -845,6 +871,12 @@
 			"backtrace" : 7,
 			"compileGroupIndex" : 0,
 			"path" : "Modules/motor/DMmotor/dmmotor.c",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 7,
+			"compileGroupIndex" : 0,
+			"path" : "Modules/laser/module_laser.c",
 			"sourceGroupIndex" : 0
 		},
 		{
