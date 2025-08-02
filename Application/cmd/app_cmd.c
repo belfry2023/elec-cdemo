@@ -2065,39 +2065,46 @@ void cmd_init()
 
 static void K230_todo()
 {
-    gimbal_cmd_send.gimbal_task = K230_data->color_det.w;
-    if(K230_data->color_det.x < 320 &&
-        K230_data->color_det.y < 240 && 
-        K230_data->color_det.x > -320 && 
-        K230_data->color_det.y > -240 && 
-        (K230_data->color_det.x || K230_data->color_det.y))
+    if(K230_data->color_det.w == 1)
     {
-        if(K230_data->color_det.x < 5 && K230_data->color_det.x > -5 && K230_data->color_det.y < 5 && K230_data->color_det.y > -5)
+        if(K230_data->color_det.x < 320 &&
+            K230_data->color_det.y < 240 && 
+            K230_data->color_det.x > -320 && 
+            K230_data->color_det.y > -240 && 
+            (K230_data->color_det.x || K230_data->color_det.y))
         {
-            // laser_enable();
-            HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_SET);
-        }else{
-            // laser_disable();
-            // HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
+            if(K230_data->color_det.x < 5 && K230_data->color_det.x > -5 && K230_data->color_det.y < 5 && K230_data->color_det.y > -5)
+            {
+                // laser_enable();
+                HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_SET);
+            }else{
+                // laser_disable();
+                // HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
+            }
+            yaw_cmd = 0.11 * K230_data->color_det.x + aligned_total_yaw;
+            pitch_cmd = - 0.11 * K230_data->color_det.y + aligned_total_pitch;
+        }else
+        {
+            if(K230_data->color_det.h == 0 && HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_8) == GPIO_PIN_RESET)
+            {
+                // HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
+                static uint8_t time;
+                time++;
+                time%=100;
+                if(time<50)
+                {
+                    yaw_cmd += 0.6;
+                    pitch_cmd += 0.6;
+                }else
+                {
+                    yaw_cmd += 0.6;
+                    pitch_cmd -= 0.6;
+                }
+            }
+        
         }
-        yaw_cmd = 0.11 * K230_data->color_det.x + aligned_total_yaw;
-        pitch_cmd = - 0.11 * K230_data->color_det.y + aligned_total_pitch;
-    }else
-    {
-        // HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
-        // static uint8_t time;
-        // time++;
-        // time%=100;
-        // if(time<50)
-        // {
-        //     yaw_cmd += 0.016;
-        //     pitch_cmd += 0.016;
-        // }else
-        // {
-        //     yaw_cmd -= 0.016;
-        //     pitch_cmd -= 0.016;
-        // }
     }
+    
     pitch_cmd = pitch_cmd < -60 ? -60 : pitch_cmd;
     pitch_cmd = pitch_cmd > 30 ? 30 : pitch_cmd;
 }
@@ -2128,8 +2135,8 @@ void cmd_task()
     SubGetMessage(gimbal_feed_sub, &gimbal_fetch_data);
     SubGetMessage(chassis_feed_sub, &chassis_fetch_data);
     SubGetMessage(cmd_ui_sub,&cmd_ui_recv);
-    aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 2);
-    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 2);
+    aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 1);
+    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);
     K230_todo();
     // task_sin();
     // task_circle();

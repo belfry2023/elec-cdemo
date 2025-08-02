@@ -15,7 +15,7 @@ static Gimbal_Upload_UI_s gimbal_feeddata_ui;
 static DJIMotorInstance *pitch_motor, *yaw_motor;
 // static module_dm_imu_t *gimba_IMU_data;
 static attitude_t *gimbal_IMU_data;
-static float speed_forward;
+static float speed_forward, yaw_forward;
 void gimbal_init()
 {
     gimbal_IMU_data = INS_Init();
@@ -36,7 +36,7 @@ void gimbal_init()
         },
         .controller_param_init_config = {
             .angle_PID = {
-                .Kp = 50,// 50, // 8
+                .Kp = 60,// 50, // 8
                 .Ki = 0,
                 .Kd = 0.6,// 4,
                 .DeadBand = 0, 
@@ -59,7 +59,7 @@ void gimbal_init()
             },
             .other_angle_feedback_ptr = &gimbal_IMU_data->YawTotalAngle,
             .other_speed_feedback_ptr = &gimbal_IMU_data->Gyro[2], //&rotate_compensator,
-            .speed_feedforward_ptr = NULL
+            .speed_feedforward_ptr = &yaw_forward
         },
         .controller_setting_init_config = {
             .angle_feedback_source = OTHER_FEED,
@@ -67,7 +67,7 @@ void gimbal_init()
             .outer_loop_type = ANGLE_LOOP,
             .close_loop_type = ANGLE_LOOP | SPEED_LOOP,
             .motor_reverse_flag = MOTOR_DIRECTION_NORMAL,
-            .feedforward_flag = FEEDFORWARD_NONE,
+            .feedforward_flag = SPEED_FEEDFORWARD,
         },
         .motor_type = GM6020};
     // PITCH
@@ -145,6 +145,18 @@ static void change_spd_ford()
     else
         Hysteresis_comparator(&speed_forward, pitch_motor->motor_controller.angle_PID.Err, -0.3, -1, 0, -0);
 
+}
+
+static void change_yaw_spd_ford()
+{
+    // if(yaw_motor->motor_controller.angle_PID.Err > 0)
+    //     yaw_forward = yaw_motor->motor_controller.angle_PID.Err > 1 ? 100 : 0;
+    // else
+    //     yaw_forward = yaw_motor->motor_controller.angle_PID.Err < -1 ? -100 : 0;
+    if(yaw_motor->motor_controller.angle_PID.Err > 0)
+        Hysteresis_comparator(&yaw_forward, yaw_motor->motor_controller.angle_PID.Err, 1, 0.3, 0, 0);
+    else
+        Hysteresis_comparator(&yaw_forward, yaw_motor->motor_controller.angle_PID.Err, -0.3, -1, 0, -0);
 }
 
 static uint8_t flag;
