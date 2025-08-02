@@ -154,9 +154,9 @@ static void change_yaw_spd_ford()
     // else
     //     yaw_forward = yaw_motor->motor_controller.angle_PID.Err < -1 ? -100 : 0;
     if(yaw_motor->motor_controller.angle_PID.Err > 0)
-        Hysteresis_comparator(&yaw_forward, yaw_motor->motor_controller.angle_PID.Err, 1, 0.3, 0, 0);
+        Hysteresis_comparator(&yaw_forward, yaw_motor->motor_controller.angle_PID.Err, 1, 0.1, 0, 0);
     else
-        Hysteresis_comparator(&yaw_forward, yaw_motor->motor_controller.angle_PID.Err, -0.3, -1, 0, -0);
+        Hysteresis_comparator(&yaw_forward, yaw_motor->motor_controller.angle_PID.Err, -0.1, -1, 0, -0);
 }
 
 static uint8_t flag;
@@ -166,6 +166,7 @@ void gimbal_task()
     flag%=2;
     SubGetMessage(gimbal_sub, (&gimbal_cmd_recv));
     change_spd_ford();
+    change_yaw_spd_ford();
     // DJIMotorStop(yaw_motor);
     // DJIMotorStop(pitch_motor);
     
