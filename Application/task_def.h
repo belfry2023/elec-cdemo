@@ -11,6 +11,8 @@ typedef struct
     float dir;
     float tor;
     float err;
+    float AKp;
+    float SKp;
     /* data */
 }motor_data;
 
@@ -27,6 +29,8 @@ typedef struct
     float pitch;
     float yaw;
     uint8_t gimbal_task;
+    motor_data yaw_motor;
+    motor_data pitch_motor;
 } Gimbal_Ctrl_Cmd_s;
 
 // ui控制结构体
@@ -34,6 +38,8 @@ typedef struct
 {
     uint8_t chassis_task;
     uint8_t gimbal_task;
+    motor_data yaw_motor;
+    motor_data pitch_motor;
     /* data */
 }CMD_Ctrl_UI_s;
 

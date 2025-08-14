@@ -24,7 +24,7 @@ static K230_data_t *K230_data;
 static float yaw_cmd, pitch_cmd;
 static buf_t *buffer_yaw, *buffer_pitch;
 static float aligned_total_yaw, aligned_total_pitch;
-
+static float YAKp = 60, YSKp = 40, PAKp = 30, PSKp = 30;
 static float pitch_sin[500] = {
 9.000000000000000000e+01,
 9.037773662995370216e+01,
@@ -2094,11 +2094,11 @@ static void K230_todo()
                 if(time<50)
                 {
                     yaw_cmd += 0.6;
-                    pitch_cmd += 0.6;
+                    pitch_cmd = -10;
                 }else
                 {
                     yaw_cmd += 0.6;
-                    pitch_cmd -= 0.6;
+                    pitch_cmd = -10;
                 }
             }
         
@@ -2135,6 +2135,10 @@ void cmd_task()
     SubGetMessage(gimbal_feed_sub, &gimbal_fetch_data);
     SubGetMessage(chassis_feed_sub, &chassis_fetch_data);
     SubGetMessage(cmd_ui_sub,&cmd_ui_recv);
+    YAKp = cmd_ui_recv.yaw_motor.AKp;
+    YSKp = cmd_ui_recv.yaw_motor.SKp;
+    PAKp = cmd_ui_recv.pitch_motor.AKp;
+    PSKp = cmd_ui_recv.pitch_motor.SKp;
     aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 1);
     aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);
     K230_todo();
@@ -2142,6 +2146,10 @@ void cmd_task()
     // task_circle();
     gimbal_cmd_send.pitch = pitch_cmd;
     gimbal_cmd_send.yaw = yaw_cmd;
+    gimbal_cmd_send.yaw_motor.AKp = YAKp;
+    gimbal_cmd_send.yaw_motor.SKp = YSKp;
+    gimbal_cmd_send.pitch_motor.AKp = PAKp;
+    gimbal_cmd_send.pitch_motor.SKp = PSKp;
     cmd_feedback_ui.k230_pitch = K230_data->color_det.y;
     cmd_feedback_ui.k230_yaw = K230_data->color_det.x;
     PubPushMessage(chassis_cmd_pub, &chassis_cmd_send);

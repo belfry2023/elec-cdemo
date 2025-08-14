@@ -20,7 +20,7 @@ typedef struct Button {
 // 定义页面结构体
 typedef struct Page {
     char *title;         // 页面标题
-    Button buttons[5];     // 按钮数组指针
+    Button buttons[10];     // 按钮数组指针
     uint8_t buttonCount; // 按钮数量
     void (*API)(void);  // API
     struct Page *parent; // 父页面指针
@@ -36,7 +36,7 @@ typedef struct {
 
 typedef struct  {
     char *title;         // 页面标题
-    Button buttons[5];        // 按钮数组指针
+    Button buttons[10];        // 按钮数组指针
     uint8_t buttonCount;    // 按钮数量
     void (*API)(void);  // API
     struct Page *parent;    // 父页面指针（用于返回）

@@ -17,13 +17,14 @@ static CMD_Ctrl_UI_s cmd_ui_send;
 static CMD_Upload_UI_s cmd_fetch_data;
 
 static KeyInstance key;
-static Page mainPage,setPage,chassisPage,gimbalPage,cmdPage,gMotorPage, waveformPage;
+static Page mainPage,setPage,chassisPage,gimbalPage,cmdPage,gMotorPage, waveformPage, YwaveformPage, settingMotorPage;
 static Cube cube;
 static MotorIcon yaw_motor, pitch_motor;
-static uint16_t y;
+static uint16_t x, y;
+static float YAkp = 60, YSKp = 40, PAkp = 30, PSKp = 30;
 static float Range = 30;
 // 全局波形实例
-Waveform wave;
+static Waveform wave, Ywave;
 
 
 // 更新电机状态
@@ -35,10 +36,10 @@ static void updateMotor(MotorIcon *motor, motor_data *measure) {
     if (currentTime - lastUpdate < 33) return;
     lastUpdate = currentTime;
     
-    motor->angle = measure->dir;
+    motor->angle = measure->dir * PI / 180.0f; // 将角度转换为弧度
     motor->speed = measure->spd;
     motor->torque = measure->tor;
-    if (fabs(motor->speed) > 5.0f) {
+    if (fabs(motor->speed) > 20.0f) {
         motor->state = MOTOR_RUNNING;
     }else
     {
@@ -94,6 +95,103 @@ static void Oscilloscope_ui()
     Waveform_Draw(&wave);
 }
 
+static void YOscilloscope_ui()
+{
+    x = float_to_uint(gimbal_fetch_data.yaw_motor.err,-Range,Range,8);
+    // 3. 更新波形数据
+    Waveform_Update(&wave);
+    // 4. 绘制波形
+    Waveform_Draw(&wave);
+}
+
+static void ShowMotorData()
+{
+    OLED_ShowString(10, 10, "Yaw Motor", OLED_6X8);
+    OLED_ShowFloatNum(20, 20, YAkp, 3, 2, OLED_6X8);
+    OLED_ShowFloatNum(20, 30, YSKp, 3, 2, OLED_6X8);
+    OLED_ShowFloatNum(20, 40, gimbal_fetch_data.yaw_motor.AKp, 3, 2, OLED_6X8);
+    OLED_ShowFloatNum(20, 50, gimbal_fetch_data.yaw_motor.SKp, 3, 2, OLED_6X8);
+    OLED_ShowString(70, 10, "Pitch Motor", OLED_6X8);
+    OLED_ShowFloatNum(100, 20, PAkp, 3, 2, OLED_6X8);
+    OLED_ShowFloatNum(100, 30, PSKp, 3, 2, OLED_6X8);
+    OLED_ShowFloatNum(100, 40, gimbal_fetch_data.pitch_motor.AKp, 3, 2, OLED_6X8);
+    OLED_ShowFloatNum(100, 50, gimbal_fetch_data.pitch_motor.SKp, 3, 2, OLED_6X8);
+}
+
+static void SetMotor()
+{
+    cmd_ui_send.yaw_motor.AKp = YAkp;
+    cmd_ui_send.yaw_motor.SKp = YSKp;
+    cmd_ui_send.pitch_motor.AKp = PAkp;
+    cmd_ui_send.pitch_motor.SKp = PSKp;
+}
+
+/* 电机参数整定 */
+
+static void YAKpADD()
+{
+    if(YAkp < 60)
+    {
+        YAkp += 1;
+    }
+}
+
+static void YAKpSUB()
+{
+    if(YAkp > 30)
+    {
+        YAkp -= 1;
+    }
+}
+
+static void YSKpADD()
+{
+    if(YSKp < 60)
+    {
+        YSKp += 1;
+    }
+}
+
+static void YSKpSUB()
+{
+    if(YSKp > 20)
+    {
+        YSKp -= 1;
+    }
+}
+
+static void PAKpADD()
+{
+    if(PAkp < 30)
+    {
+        PAkp += 1;
+    }
+}
+
+static void PAKpSUB()
+{
+    if(PAkp > 20)
+    {
+        PAkp -= 1;
+    }
+}
+
+static void PSKpADD()
+{
+    if(PSKp < 30)
+    {
+        PSKp += 1;
+    }
+}
+
+static void PSKpSUB()
+{
+    if(PSKp > 20)
+    {
+        PSKp -= 1;
+    }
+}
+
 void oled_ui_init(void)
 {
     OLED_Init();
@@ -101,6 +199,7 @@ void oled_ui_init(void)
     initMotor(&yaw_motor,0);
     initMotor(&pitch_motor,1);
     Waveform_Register(&wave,&y);
+    Waveform_Register(&Ywave,&x);
     Waveform_SetParameters(&wave,1.0f, 32.0f, 60.0f);
     key_init_config_t key_config = {
         .GPIO = GPIOA,
@@ -160,9 +259,11 @@ void oled_ui_init(void)
 
     Page_Init_Config page6_config = {
         .title = "gMotorPage",
-        .buttons[0] = {"X", 80, 50, 10, 10, 0, 0,goBack, NULL},
-        .buttons[1] = {"ERR", 8, 60, 20, 10, 0, 0, NULL, &waveformPage},
-        .buttonCount = 2,
+        .buttons[0] = {"X", 100, 70, 10, 10, 0, 0,goBack, NULL},
+        .buttons[1] = {"PERR", 8, 80, 20, 10, 0, 0, NULL, &waveformPage},
+        .buttons[2] = {"YERR", 40, 80, 20, 10, 0, 0, NULL, &YwaveformPage},
+        .buttons[3] = {"MotorSet", 8, 90, 60, 10, 0, 0, NULL, &settingMotorPage},
+        .buttonCount = 4,
         .parent = &mainPage,
         .API = gMotorPage_ui
     };
@@ -177,9 +278,37 @@ void oled_ui_init(void)
     };
     PageRegister(&waveformPage,&page7_config);
 
+    Page_Init_Config page8_config = {
+        .title = "YwaveformPage",
+        .buttons[0] = {"X", 80, 50, 10, 10, 0, 0,goBack, NULL},
+        .buttonCount = 1,
+        .parent = &mainPage,
+        .API = YOscilloscope_ui
+    };
+    PageRegister(&YwaveformPage,&page8_config);
+
+    Page_Init_Config page9_config = {
+        .title = "settingMotorPage",
+        .buttons[0] = {"X", 0, 60, 10, 10, 0, 0,goBack, NULL},
+        .buttons[1] = {"+", 0, 20, 10, 10, 0, 0, YAKpADD, NULL},
+        .buttons[2] = {"-", 10, 20, 10, 10, 0, 0, YAKpSUB, NULL},
+        .buttons[3] = {"+", 0, 30, 10, 10, 0, 0, YSKpADD, NULL},
+        .buttons[4] = {"-", 10, 30, 10, 10, 0, 0, YSKpSUB, NULL},
+        .buttons[5] = {"+", 80, 20, 10, 10, 0, 0, PAKpADD, NULL},
+        .buttons[6] = {"-", 90, 20, 10, 10, 0, 0, PAKpSUB, NULL},
+        .buttons[7] = {"+", 80, 30, 10, 10, 0, 0, PSKpADD, NULL},
+        .buttons[8] = {"-", 90, 30, 10, 10, 0, 0, PSKpSUB, NULL},
+        .buttons[9] = {"Set", 80, 60, 40, 10, 0, 0, SetMotor, NULL},
+        .buttonCount = 10,
+        .parent = &mainPage,
+        .API = ShowMotorData
+    };
+    PageRegister(&settingMotorPage,&page9_config);
     appTitle.text = "MyAPP";
     appTitle.currentPage = &mainPage;
     
+    SetMotor();
+
     chassis_feed_sub = SubRegister("chassis_feed_ui", sizeof(chassis_state_t));
     gimbal_feed_sub = SubRegister("gimbal_feed_ui", sizeof(Gimbal_Upload_UI_s));
     cmd_feed_sub = SubRegister("cmd_feed_ui",sizeof(CMD_Upload_UI_s));

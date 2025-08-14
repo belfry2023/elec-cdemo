@@ -165,22 +165,18 @@ void gimbal_task()
     flag++;
     flag%=2;
     SubGetMessage(gimbal_sub, (&gimbal_cmd_recv));
+    yaw_motor->motor_controller.angle_PID.Kp = gimbal_cmd_recv.yaw_motor.AKp;
+    yaw_motor->motor_controller.speed_PID.Kp = gimbal_cmd_recv.yaw_motor.SKp;
+    pitch_motor->motor_controller.angle_PID.Kp = gimbal_cmd_recv.pitch_motor.AKp;
+    pitch_motor->motor_controller.speed_PID.Kp = gimbal_cmd_recv.pitch_motor.SKp;
     change_spd_ford();
     change_yaw_spd_ford();
-    // DJIMotorStop(yaw_motor);
-    // DJIMotorStop(pitch_motor);
-    
     DJIMotorStop(yaw_motor);
     DJIMotorStop(pitch_motor);
     DJIMotorChangeFeed(yaw_motor, ANGLE_LOOP, OTHER_FEED);
     DJIMotorChangeFeed(yaw_motor, SPEED_LOOP, OTHER_FEED);
     DJIMotorChangeFeed(pitch_motor, ANGLE_LOOP, OTHER_FEED);
     DJIMotorChangeFeed(pitch_motor, SPEED_LOOP, OTHER_FEED);
-    if(gimbal_cmd_recv.gimbal_task)
-    {
-        DJIMotorEnable(yaw_motor);
-        DJIMotorEnable(pitch_motor);
-    }
     DJIMotorEnable(yaw_motor);
     DJIMotorEnable(pitch_motor);
     DJIMotorSetRef(yaw_motor, gimbal_cmd_recv.yaw); // yaw和pitch会在robot_cmd中处理好多圈和单圈
@@ -194,10 +190,14 @@ void gimbal_task()
     gimbal_feeddata_ui.yaw_motor.spd = yaw_motor->measure.speed_aps;
     gimbal_feeddata_ui.yaw_motor.dir = yaw_motor->measure.angle_single_round;
     gimbal_feeddata_ui.yaw_motor.tor = yaw_motor->measure.real_current;
+    gimbal_feeddata_ui.yaw_motor.AKp = yaw_motor->motor_controller.angle_PID.Kp;
+    gimbal_feeddata_ui.yaw_motor.SKp = yaw_motor->motor_controller.speed_PID.Kp;
     gimbal_feeddata_ui.pitch_motor.err = pitch_motor->motor_controller.angle_PID.Err;
     gimbal_feeddata_ui.pitch_motor.spd = pitch_motor->measure.speed_aps;
     gimbal_feeddata_ui.pitch_motor.dir = pitch_motor->measure.angle_single_round;
     gimbal_feeddata_ui.pitch_motor.tor = pitch_motor->measure.real_current;
+    gimbal_feeddata_ui.pitch_motor.AKp = pitch_motor->motor_controller.angle_PID.Kp;
+    gimbal_feeddata_ui.pitch_motor.SKp = pitch_motor->motor_controller.speed_PID.Kp;
     PubPushMessage(gimbal_pub, (void *)&gimbal_feedback_data);
     PubPushMessage(gimbal_ui_pub,&gimbal_feeddata_ui);
 }
