@@ -20,7 +20,7 @@
 #include "motor_def.h"
 #include "stdint.h"
 #include "daemon.h"
-
+#include "lib_adrc.h"
 #define DJI_MOTOR_CNT 12
 
 /* 滤波系数设置为1的时候即关闭滤波 */
@@ -51,7 +51,7 @@ typedef struct
     DJI_Motor_Measure_s measure;            // 电机测量值
     Motor_Control_Setting_s motor_settings; // 电机设置
     Motor_Controller_s motor_controller;    // 电机控制器
-
+    
     CANInstance *motor_can_instance; // 电机CAN实例
     // 分组发送设置
     uint8_t sender_group;

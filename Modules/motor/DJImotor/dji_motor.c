@@ -199,6 +199,8 @@ DJIMotorInstance *DJIMotorInit(Motor_Init_Config_s *config)
     instance->motor_settings = config->controller_setting_init_config; // 正反转,闭环类型等
 
     // motor controller init 电机控制器初始化
+    instance->motor_controller.adrc = create_ADRC();
+    instance->motor_controller.adrc.param_init(&instance->motor_controller.adrc,config->controller_param_init_config.adrc_config);
     PIDInit(&instance->motor_controller.current_PID, &config->controller_param_init_config.current_PID);
     PIDInit(&instance->motor_controller.speed_PID, &config->controller_param_init_config.speed_PID);
     PIDInit(&instance->motor_controller.angle_PID, &config->controller_param_init_config.angle_PID);
@@ -287,54 +289,61 @@ void DJIMotorControl()
 
         // pid_ref会顺次通过被启用的闭环充当数据的载体
         // 计算位置环,只有启用位置环且外层闭环为位置时会计算速度环输出
-        if ((motor_setting->close_loop_type & ANGLE_LOOP) && motor_setting->outer_loop_type == ANGLE_LOOP)
+        if(motor_setting->mode == pid)
         {
-            if (motor_setting->angle_feedback_source == OTHER_FEED)
-                pid_measure = *motor_controller->other_angle_feedback_ptr;
-            else
-                pid_measure = measure->total_angle; // MOTOR_FEED,对total angle闭环,防止在边界处出现突跃
-            // 更新pid_ref进入下一个环
-            pid_ref = PIDCalculate(&motor_controller->angle_PID, pid_measure, pid_ref);
-        }
+            if ((motor_setting->close_loop_type & ANGLE_LOOP) && motor_setting->outer_loop_type == ANGLE_LOOP)
+            {
+                if (motor_setting->angle_feedback_source == OTHER_FEED)
+                    pid_measure = *motor_controller->other_angle_feedback_ptr;
+                else
+                    pid_measure = measure->total_angle; // MOTOR_FEED,对total angle闭环,防止在边界处出现突跃
+                // 更新pid_ref进入下一个环
+                pid_ref = PIDCalculate(&motor_controller->angle_PID, pid_measure, pid_ref);
+            }
 
-        // 计算速度环,(外层闭环为速度或位置)且(启用速度环)时会计算速度环
-        if ((motor_setting->close_loop_type & SPEED_LOOP) && (motor_setting->outer_loop_type & (ANGLE_LOOP | SPEED_LOOP)))
+            // 计算速度环,(外层闭环为速度或位置)且(启用速度环)时会计算速度环
+            if ((motor_setting->close_loop_type & SPEED_LOOP) && (motor_setting->outer_loop_type & (ANGLE_LOOP | SPEED_LOOP)))
+            {
+                if (motor_setting->feedforward_flag & SPEED_FEEDFORWARD)
+                    pid_ref += *motor_controller->speed_feedforward_ptr;
+
+                if (motor_setting->speed_feedback_source == OTHER_FEED)
+                    pid_measure = *motor_controller->other_speed_feedback_ptr;
+                else // MOTOR_FEED
+                    pid_measure = measure->speed_aps;
+                // 更新pid_ref进入下一个环
+                pid_ref = PIDCalculate(&motor_controller->speed_PID, pid_measure, pid_ref);
+            }
+
+            // 计算电流环,目前只要启用了电流环就计算,不管外层闭环是什么,并且电流只有电机自身传感器的反馈
+            if (motor_setting->feedforward_flag & CURRENT_FEEDFORWARD)
+                pid_ref += *motor_controller->current_feedforward_ptr;
+            if (motor_setting->close_loop_type & CURRENT_LOOP)
+            {
+                pid_ref = PIDCalculate(&motor_controller->current_PID, measure->real_current, pid_ref);
+            }
+
+            if (motor_setting->feedback_reverse_flag == FEEDBACK_DIRECTION_REVERSE)
+                pid_ref *= -1;
+
+            // 获取最终输出
+            set = (int16_t)pid_ref;
+
+            // 分组填入发送数据
+            group = motor->sender_group;
+            num = motor->message_num;
+            sender_assignment[group].tx_buff[2 * num] = (uint8_t)(set >> 8);         // 低八位
+            sender_assignment[group].tx_buff[2 * num + 1] = (uint8_t)(set & 0x00ff); // 高八位
+
+            // 若该电机处于停止状态,直接将buff置零
+            if (motor->stop_flag == MOTOR_STOP)
+                memset(sender_assignment[group].tx_buff + 2 * num, 0, sizeof(uint16_t));
+        }else
         {
-            if (motor_setting->feedforward_flag & SPEED_FEEDFORWARD)
-                pid_ref += *motor_controller->speed_feedforward_ptr;
-
-            if (motor_setting->speed_feedback_source == OTHER_FEED)
-                pid_measure = *motor_controller->other_speed_feedback_ptr;
-            else // MOTOR_FEED
-                pid_measure = measure->speed_aps;
-            // 更新pid_ref进入下一个环
-            pid_ref = PIDCalculate(&motor_controller->speed_PID, pid_measure, pid_ref);
+            motor_controller->adrc.getOutput(&motor_controller->adrc, pid_ref, measure->speed_aps);
         }
-
-        // 计算电流环,目前只要启用了电流环就计算,不管外层闭环是什么,并且电流只有电机自身传感器的反馈
-        if (motor_setting->feedforward_flag & CURRENT_FEEDFORWARD)
-            pid_ref += *motor_controller->current_feedforward_ptr;
-        if (motor_setting->close_loop_type & CURRENT_LOOP)
-        {
-            pid_ref = PIDCalculate(&motor_controller->current_PID, measure->real_current, pid_ref);
-        }
-
-        if (motor_setting->feedback_reverse_flag == FEEDBACK_DIRECTION_REVERSE)
-            pid_ref *= -1;
-
-        // 获取最终输出
-        set = (int16_t)pid_ref;
-
-        // 分组填入发送数据
-        group = motor->sender_group;
-        num = motor->message_num;
-        sender_assignment[group].tx_buff[2 * num] = (uint8_t)(set >> 8);         // 低八位
-        sender_assignment[group].tx_buff[2 * num + 1] = (uint8_t)(set & 0x00ff); // 高八位
-
-        // 若该电机处于停止状态,直接将buff置零
-        if (motor->stop_flag == MOTOR_STOP)
-            memset(sender_assignment[group].tx_buff + 2 * num, 0, sizeof(uint16_t));
     }
+        
 
     // 遍历flag,检查是否要发送这一帧报文
 #ifdef FDCAN

@@ -58,6 +58,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/algorithm/kalman_filter.c
     Modules/algorithm/QuaternionEKF.c
     Modules/algorithm/user_lib.c
+    Modules/algorithm/lib_adrc.c
     Modules/buffer/buffer.c
     Modules/imu/BMI088_driver.c
     Modules/imu/BMI088.c
@@ -79,6 +80,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Application/cmd/app_cmd.c
     Application/gimbal/app_gimbal.c
     Application/ui/app_ui.c
+    Application/shoot/app_shoot.c
 )
 
 # Add include paths
@@ -111,6 +113,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Application/cmd
     Application/gimbal
     Application/ui
+    Application/shoot
 )
 
 # Add project symbols (macros)

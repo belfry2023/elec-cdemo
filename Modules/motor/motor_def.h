@@ -14,7 +14,7 @@
 
 #include "controller.h"
 #include "stdint.h"
-
+#include "lib_adrc.h"
 #define LIMIT_MIN_MAX(x, min, max) (x) = (((x) <= (min)) ? (min) : (((x) >= (max)) ? (max) : (x)))
 
 /**
@@ -68,6 +68,12 @@ typedef enum
     MOTOR_ENALBED = 1,
 } Motor_Working_Type_e;
 
+typedef enum{
+    pid = 0,
+    ardc = 1
+}control_mode;
+
+
 /* 电机控制设置,包括闭环类型,反转标志和反馈来源 */
 typedef struct
 {
@@ -78,7 +84,7 @@ typedef struct
     Feedback_Source_e angle_feedback_source;       // 角度反馈类型
     Feedback_Source_e speed_feedback_source;       // 速度反馈类型
     Feedfoward_Type_e feedforward_flag;            // 前馈标志
-
+    control_mode mode;
 } Motor_Control_Setting_s;
 
 /* 电机控制器,包括其他来源的反馈数据指针,3环控制器和电机的参考输入*/
@@ -93,7 +99,7 @@ typedef struct
     PIDInstance current_PID;
     PIDInstance speed_PID;
     PIDInstance angle_PID;
-
+    ADRC adrc;
     float pid_ref; // 将会作为每个环的输入和输出顺次通过串级闭环
 } Motor_Controller_s;
 
@@ -124,6 +130,7 @@ typedef struct
     PID_Init_Config_s current_PID;
     PID_Init_Config_s speed_PID;
     PID_Init_Config_s angle_PID;
+    ADRC_Init adrc_config;
 } Motor_Controller_Init_s;
 
 /* 用于初始化CAN电机的结构体,各类电机通用 */

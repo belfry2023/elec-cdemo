@@ -11,6 +11,8 @@ static Subscriber_t *chassis_feed_sub;
 static Chassis_Upload_UI_s chassis_fetch_data;        
 static Subscriber_t *gimbal_feed_sub;     
 static Gimbal_Upload_UI_s gimbal_fetch_data;
+static Subscriber_t *shoot_feed_sub;     
+static Shoot_Upload_UI_s shoot_fetch_data;
 static Publisher_t *cmd_ui_pub;            
 static Subscriber_t *cmd_feed_sub;  
 static CMD_Ctrl_UI_s cmd_ui_send;   
@@ -311,14 +313,16 @@ void oled_ui_init(void)
 
     chassis_feed_sub = SubRegister("chassis_feed_ui", sizeof(chassis_state_t));
     gimbal_feed_sub = SubRegister("gimbal_feed_ui", sizeof(Gimbal_Upload_UI_s));
+    shoot_feed_sub = SubRegister("shoot_feed_ui", sizeof(Shoot_Upload_UI_s));
     cmd_feed_sub = SubRegister("cmd_feed_ui",sizeof(CMD_Upload_UI_s));
     cmd_ui_pub = PubRegister("ui_ctrl_cmd",sizeof(CMD_Ctrl_UI_s));
+}
 
-    OLED_ClearArea(10, 4, 96, 30);
-    OLED_ShowString(10, 4, "UI OK!", OLED_6X8);
-    OLED_ShowString(10, 14, "CMD Init...", OLED_6X8);
-    OLED_DrawRectangle(0, 40, 24, 15, OLED_FILLED);
-    OLED_DrawRectangle(0, 40, 96, 15, OLED_UNFILLED);
+static void core_task()
+{
+    Key_Scan(&key);
+    handleInput(key.Key_Short_Press[0],key.Key_Long_Press[0]);
+    renderPage(appTitle.currentPage);
     OLED_Update();
 }
 
@@ -326,16 +330,10 @@ void oled_ui_task(void)
 {
     SubGetMessage(chassis_feed_sub,&chassis_fetch_data);
     SubGetMessage(gimbal_feed_sub,&gimbal_fetch_data);
+    SubGetMessage(shoot_feed_sub,&shoot_fetch_data);
     SubGetMessage(cmd_feed_sub,&cmd_fetch_data);
-    Key_Scan(&key);
-    // if(!OLED_GetPoint(0,0))
-    //     OLED_Init();
-    handleInput(key.Key_Short_Press[0],key.Key_Long_Press[0]);
-    renderPage(appTitle.currentPage);
-    // OLED_DrawPoint(0,0);
-    if(OLED_FLAG != 0)
-    {
-        OLED_Update();
-    }
+
+    core_task();
+
     PubPushMessage(cmd_ui_pub,&cmd_ui_send);
 }

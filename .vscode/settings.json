@@ -8,7 +8,8 @@
         "math.h": "c",
         "daemon.h": "c",
         "compare": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "stdint.h": "c"
     },
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",

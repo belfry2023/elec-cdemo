@@ -10,11 +10,15 @@
 static Publisher_t *chassis_cmd_pub;            
 static Subscriber_t *chassis_feed_sub;          
 static Publisher_t *gimbal_cmd_pub;            
-static Subscriber_t *gimbal_feed_sub;         
+static Subscriber_t *gimbal_feed_sub;
+static Publisher_t *shoot_cmd_pub;            
+static Subscriber_t *shoot_feed_sub;             
 static Subscriber_t *cmd_ui_sub;
 static Publisher_t *cmd_ui_pub;
 static Gimbal_Ctrl_Cmd_s gimbal_cmd_send;      
 static Gimbal_Upload_Data_s gimbal_fetch_data; 
+static Shoot_Ctrl_Cmd_s shoot_cmd_send;      
+static Shoot_Upload_Data_s shoot_fetch_data; 
 static chassis_state_t chassis_fetch_data;
 static chassis_control_t chassis_cmd_send;      
 static CMD_Ctrl_UI_s cmd_ui_recv;
@@ -2055,12 +2059,8 @@ void cmd_init()
     gimbal_feed_sub = SubRegister("gimbal_feed", sizeof(Gimbal_Upload_Data_s));
     cmd_ui_sub = SubRegister("ui_ctrl_cmd",sizeof(CMD_Ctrl_UI_s));
     cmd_ui_pub = PubRegister("cmd_feed_ui",sizeof(CMD_Upload_UI_s));
-    OLED_ClearArea(10, 4, 96, 30);
-    OLED_ShowString(10, 4, "CMD OK!", OLED_6X8);
-    OLED_ShowString(10, 14, "Gimbal Init...", OLED_6X8);
-	OLED_DrawRectangle(0, 40, 48, 15, OLED_FILLED);
-    OLED_DrawRectangle(0, 40, 96, 15, OLED_UNFILLED);
-	OLED_Update();
+    shoot_cmd_pub = PubRegister("shoot_cmd",sizeof(Shoot_Ctrl_Cmd_s));
+    shoot_feed_sub = SubRegister("shoot_state",sizeof(Shoot_Upload_Data_s));
 }
 
 static void K230_todo()
@@ -2130,29 +2130,54 @@ static void task_circle()
     yaw_cmd = yaw_circle[time]/10;
 }
 
-void cmd_task()
+static void parameter_acceptance()
 {
-    SubGetMessage(gimbal_feed_sub, &gimbal_fetch_data);
-    SubGetMessage(chassis_feed_sub, &chassis_fetch_data);
-    SubGetMessage(cmd_ui_sub,&cmd_ui_recv);
     YAKp = cmd_ui_recv.yaw_motor.AKp;
     YSKp = cmd_ui_recv.yaw_motor.SKp;
     PAKp = cmd_ui_recv.pitch_motor.AKp;
     PSKp = cmd_ui_recv.pitch_motor.SKp;
+
     aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 1);
     aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);
-    K230_todo();
-    // task_sin();
-    // task_circle();
+}
+
+static void parameter_passing()
+{
     gimbal_cmd_send.pitch = pitch_cmd;
     gimbal_cmd_send.yaw = yaw_cmd;
     gimbal_cmd_send.yaw_motor.AKp = YAKp;
     gimbal_cmd_send.yaw_motor.SKp = YSKp;
     gimbal_cmd_send.pitch_motor.AKp = PAKp;
     gimbal_cmd_send.pitch_motor.SKp = PSKp;
+    
+    shoot_cmd_send.mode = FIRE;
+
     cmd_feedback_ui.k230_pitch = K230_data->color_det.y;
     cmd_feedback_ui.k230_yaw = K230_data->color_det.x;
+}
+
+static void core_task()
+{
+    K230_todo();
+    // task_sin();
+    // task_circle();
+}
+
+void cmd_task()
+{
+    SubGetMessage(gimbal_feed_sub, &gimbal_fetch_data);
+    SubGetMessage(shoot_feed_sub, &shoot_fetch_data);
+    SubGetMessage(chassis_feed_sub, &chassis_fetch_data);
+    SubGetMessage(cmd_ui_sub,&cmd_ui_recv);
+
+    parameter_acceptance();
+
+    core_task();
+
+    parameter_passing();
+
     PubPushMessage(chassis_cmd_pub, &chassis_cmd_send);
+    PubPushMessage(shoot_cmd_pub, &shoot_cmd_send);
     PubPushMessage(gimbal_cmd_pub, &gimbal_cmd_send);
     PubPushMessage(cmd_ui_pub,&cmd_feedback_ui);
 }

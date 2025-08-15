@@ -1,6 +1,7 @@
 #include "task_init.h"
 #include "app_chassis.h"
 #include "app_gimbal.h"
+#include "app_shoot.h"
 #include "app_cmd.h"
 #include "realtime_task.h"
 #include "bsp_dwt.h"
@@ -15,7 +16,7 @@ void task_init(void)
     OLED_ClearArea(10, 4, 96, 30);
     OLED_ShowString(10, 4, "OLED OK!", OLED_6X8);
     OLED_ShowString(10, 14, "CMD Init...", OLED_6X8);
-	OLED_DrawRectangle(0, 40, 32, 15, OLED_FILLED);
+	OLED_DrawRectangle(0, 40, 24, 15, OLED_FILLED);
     OLED_DrawRectangle(0, 40, 96, 15, OLED_UNFILLED);
 	OLED_Update();
 
@@ -23,18 +24,25 @@ void task_init(void)
     OLED_ClearArea(10, 4, 96, 30);
     OLED_ShowString(10, 4, "CMD OK!", OLED_6X8);
     OLED_ShowString(10, 14, "Gimbal Init...", OLED_6X8);
-	OLED_DrawRectangle(0, 40, 64, 15, OLED_FILLED);
+	OLED_DrawRectangle(0, 40, 48, 15, OLED_FILLED);
     OLED_DrawRectangle(0, 40, 96, 15, OLED_UNFILLED);
 	OLED_Update();
 
     gimbal_init();
     OLED_ClearArea(10, 4, 96, 30);
     OLED_ShowString(10, 4, "Gimbal OK!", OLED_6X8);
-    OLED_ShowString(10, 14, "Chassis Init...", OLED_6X8);
-	OLED_DrawRectangle(0, 40, 96, 15, OLED_FILLED);
+    OLED_ShowString(10, 14, "Shoot Init...", OLED_6X8);
+	OLED_DrawRectangle(0, 40, 72, 15, OLED_FILLED);
     OLED_DrawRectangle(0, 40, 96, 15, OLED_UNFILLED);
 	OLED_Update();
 
+    shoot_init();
+    OLED_ClearArea(10, 4, 96, 30);
+    OLED_ShowString(10, 4, "Gimbal OK!", OLED_6X8);
+    OLED_ShowString(10, 14, "OS Init...", OLED_6X8);
+	OLED_DrawRectangle(0, 40, 96, 15, OLED_FILLED);
+    OLED_DrawRectangle(0, 40, 96, 15, OLED_UNFILLED);
+	OLED_Update();
     // 初始化底盘
     // chassis_init();
     // OLED_ClearArea(10, 4, 96, 30);
@@ -60,8 +68,12 @@ void task_init(void)
 
 void task_run(void)
 {
-    oled_ui_task();
+    if(OLED_FLAG)
+    {
+        oled_ui_task();
+    }
     cmd_task(); // 执行命令处理任务
     gimbal_task(); // 执行云台任务
+    shoot_task (); 
     // chassis_task(); // 执行底盘任务
 }

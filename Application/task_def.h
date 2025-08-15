@@ -16,6 +16,10 @@ typedef struct
     /* data */
 }motor_data;
 
+typedef enum{
+    HOLD = 0,
+    FIRE = 1
+}shoot_mode;
 
 // cmd控制结构体
 typedef struct chassis_control_s
@@ -32,6 +36,14 @@ typedef struct
     motor_data yaw_motor;
     motor_data pitch_motor;
 } Gimbal_Ctrl_Cmd_s;
+
+typedef struct
+{
+    motor_data fricl;
+    motor_data fricr;
+    motor_data loader;
+    shoot_mode mode;
+} Shoot_Ctrl_Cmd_s;
 
 // ui控制结构体
 typedef struct 
@@ -64,6 +76,14 @@ typedef struct
 
 typedef struct 
 {
+    motor_data fricl;
+    motor_data fricr;
+    motor_data loader;
+    /* data */
+}Shoot_Upload_UI_s;
+
+typedef struct 
+{
     float k230_yaw;
     float k230_pitch;
     /* data */
@@ -77,6 +97,11 @@ typedef struct
     float pitch;
     float roll;
 }Gimbal_Upload_Data_s;
+
+typedef struct
+{
+    
+}Shoot_Upload_Data_s;
 
 typedef struct chassis_state_s
 {
