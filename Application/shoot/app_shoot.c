@@ -42,6 +42,7 @@ void shoot_init()
             },
         },
         .controller_setting_init_config = {
+            .mode = adrc_control,
             .angle_feedback_source = MOTOR_FEED,
             .speed_feedback_source = MOTOR_FEED,
             .outer_loop_type = SPEED_LOOP,

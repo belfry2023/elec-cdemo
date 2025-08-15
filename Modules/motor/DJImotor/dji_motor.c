@@ -289,7 +289,7 @@ void DJIMotorControl()
 
         // pid_ref会顺次通过被启用的闭环充当数据的载体
         // 计算位置环,只有启用位置环且外层闭环为位置时会计算速度环输出
-        if(motor_setting->mode == pid)
+        if(motor_setting->mode == pid_control)
         {
             if ((motor_setting->close_loop_type & ANGLE_LOOP) && motor_setting->outer_loop_type == ANGLE_LOOP)
             {

@@ -174,8 +174,8 @@ static void _adrc_inputStatus(ADRC * adrc, float target, float feedback)
 	adrc->Lastnot0_target = adrc->Target==0 ? adrc->Lastnot0_target : adrc->Target;
 	adrc->Target = target;
 	err = adrc->Target - feedback;
-	err = err>=0 ? err : -err;
-	adrc->Measure = err>adrc->Other.DeadBand ? feedback : adrc->Target;
+	err = err >= 0 ? err : -err;
+	adrc->Measure = err > adrc->Other.DeadBand ? feedback : adrc->Target;
 	adrc->getTimeStamp(adrc);
 }
 

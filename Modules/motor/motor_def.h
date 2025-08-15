@@ -69,8 +69,8 @@ typedef enum
 } Motor_Working_Type_e;
 
 typedef enum{
-    pid = 0,
-    ardc = 1
+    pid_control = 0,
+    adrc_control = 1
 }control_mode;
 
 
