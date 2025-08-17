@@ -38,14 +38,14 @@ const ADRC_Init Default_3508_speed =
 
 	.NLC =
 	{
-		.B = 1.92f,
+		.B = 38.4f,
 		.Alpha_p = 0.5f,
 		.Alpha_n = 0.98f,
 		.Alpha_f = 0.9f,
 		.Beta_p = 0.5f,
-		.Beta_n = 50.f,
-		.Beta_f = 0.f,
-		.MaxOutputClamp = 16384.f
+		.Beta_n = 40.f,
+		.Beta_f = 0.1f,
+		.MaxOutputClamp = 16384.0f
 	},
 
 	.ESO =
@@ -53,7 +53,7 @@ const ADRC_Init Default_3508_speed =
 		.Alpha1 = 1.1f,
 		.Alpha2 = 0.87f,
 		.Alpha3 = 0.25f,
-		.Omega = 20.f,
+		.Omega = 40.f,
 		.Delta = 0
 	},
 

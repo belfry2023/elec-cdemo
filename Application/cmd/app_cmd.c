@@ -2114,11 +2114,14 @@ static void task_sin()
     static uint32_t time,time2;
     time++;
     time2++;
-    time %= 250;
+    time %= 100;
     time2 %= 100;
-    pitch_cmd = (pitch_sin[5 * time2] - 90) / 5;
-    yaw_cmd = (yaw_sin[2 * time] - 90) / 10 + 30;
-    gimbal_cmd_send.gimbal_task = 1;
+    //
+    shoot_cmd_send.fricl.spd = 5 * (100 * pitch_sin[5 * time] - 9000);
+    //
+    // pitch_cmd = (pitch_sin[5 * time2] - 90) / 5;
+    // yaw_cmd = (yaw_sin[2 * time] - 90) / 10 + 30;
+    // gimbal_cmd_send.gimbal_task = 1;
 }
 
 static void task_circle()
@@ -2158,8 +2161,8 @@ static void parameter_passing()
 
 static void core_task()
 {
-    K230_todo();
-    // task_sin();
+    // K230_todo();
+    task_sin();
     // task_circle();
 }
 

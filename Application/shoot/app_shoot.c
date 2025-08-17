@@ -17,12 +17,12 @@ void shoot_init()
 {
     Motor_Init_Config_s friction_config = {
         .can_init_config = {
-            .can_handle = &hcan2,
+            .can_handle = &hcan1,
         },
         .controller_param_init_config = {
             .adrc_config = Default_3508_speed,
             .speed_PID = {
-                .Kp = 20, // 20
+                .Kp = 5, // 20
                 .Ki = 0, // 1
                 .Kd = 0,
                 .Improve = PID_Integral_Limit,
@@ -61,7 +61,7 @@ void shoot_init()
     Motor_Init_Config_s loader_config = {
         .can_init_config = {
             .can_handle = &hcan1,
-            .tx_id = 7,
+            .tx_id = 3,
         },
         .controller_param_init_config = {
             .angle_PID = {
@@ -106,6 +106,8 @@ void shoot_init()
     shoot_sub = SubRegister("shoot_cmd", sizeof(Shoot_Ctrl_Cmd_s));
 }
 
+static float v;
+
 static void core_task()
 {
     if(shoot_cmd_recv.mode == HOLD)
@@ -118,18 +120,18 @@ static void core_task()
     else if(shoot_cmd_recv.mode == FIRE)
     {
         // 摩擦轮开到一定速度
-        DJIMotorSetRef(friction_l, 5000);
-        DJIMotorSetRef(friction_r, 5000);
+        DJIMotorSetRef(friction_l, v);
+        DJIMotorSetRef(friction_r, v);
         DJIMotorSetRef(loader, 0);
         if(friction_l->measure.speed_aps > 4000 && friction_r->measure.speed_aps > 4000) // 摩擦轮转起来后再拨弹
-            DJIMotorSetRef(loader, 1000);
+            DJIMotorSetRef(loader, 100);
     }
 }
 
 void shoot_task()
 {
     SubGetMessage(shoot_sub, (&shoot_cmd_recv));
-
+    v = shoot_cmd_recv.fricl.spd; // 摩擦轮速度
     core_task();
 
     PubPushMessage(shoot_pub, (void *)&shoot_feedback_data);
