@@ -60,7 +60,10 @@ void task_init(void)
 
 void task_run(void)
 {
-    oled_ui_task();
+    if(OLED_FLAG != 0)
+    {
+        oled_ui_task();
+    }
     cmd_task(); // 执行命令处理任务
     gimbal_task(); // 执行云台任务
     // chassis_task(); // 执行底盘任务

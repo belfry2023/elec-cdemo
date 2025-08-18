@@ -9,11 +9,11 @@ buf_t *BUFRegister()
     return _buf;
 }
 
-float BUFUpdata(buf_t *_buf, float n, uint8_t time)
+float BUFUpdata(buf_t *_buf, float data, uint8_t n)
 {
-    _buf->od %= time + 1;
-    _buf->quene[_buf->id++] = n;
-    _buf->id %= time + 1;
+    _buf->od %= n + 1;
+    _buf->quene[_buf->id++] = data;
+    _buf->id %= n + 1;
     return _buf->quene[_buf->od++];
 }
 

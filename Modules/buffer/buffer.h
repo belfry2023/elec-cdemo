@@ -11,6 +11,6 @@ typedef struct
 }buf_t;
 
 buf_t *BUFRegister();
-float BUFUpdata(buf_t *_buf, float n, uint8_t time);
+float BUFUpdata(buf_t *_buf, float data, uint8_t n);
 
 #endif
