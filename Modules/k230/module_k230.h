@@ -41,9 +41,10 @@ typedef struct {
     GestureType gesture;         // 手势识别
     char ocr_msg[128];           // OCR识别结果
     // 其他例程的数据结构可以在这里添加...
+    void (*k230_application_callback)(void);
 } K230_data_t;
 
 // 函数声明
-K230_data_t *K230ProtocolInit(UART_HandleTypeDef *huart);
+K230_data_t *K230ProtocolInit(UART_HandleTypeDef *huart, void (*k230_module_callback)(void));
 
 #endif

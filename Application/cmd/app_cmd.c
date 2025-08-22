@@ -2041,9 +2041,15 @@ static float pitch_circle[500] = {
 ,1.200000000000000000e+02
 };
 
+void syncWithVisionSystem()
+{
+    aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 1);
+    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);    
+}
+
 void cmd_init()
 {
-    K230_data = K230ProtocolInit(&huart1);
+    K230_data = K230ProtocolInit(&huart1,syncWithVisionSystem);
     // laser_c laser_config = {
     //     .laser_tim_driver = &htim3,
     //     .Channel = TIM_CHANNEL_3
@@ -2139,9 +2145,6 @@ static void parameter_acceptance()
     YSKp = cmd_ui_recv.yaw_motor.SKp;
     PAKp = cmd_ui_recv.pitch_motor.AKp;
     PSKp = cmd_ui_recv.pitch_motor.SKp;
-
-    aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 1);
-    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);
 }
 
 static void parameter_passing()
