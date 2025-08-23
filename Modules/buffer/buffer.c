@@ -16,4 +16,3 @@ float BUFUpdata(buf_t *_buf, float data, uint8_t n)
     _buf->id %= n + 1;
     return _buf->quene[_buf->od++];
 }
-

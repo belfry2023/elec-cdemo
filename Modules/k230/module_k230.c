@@ -4,6 +4,8 @@
 #include "memory.h"
 #include "stdlib.h"
 
+// 视觉自瞄的分辨率，相机的视场角FOV，像素的映射角，视觉的延迟(帧率)。
+
 #define K230_PROTOCOL_MAX_FRAME_SIZE 128u // 最大帧长度
 #define K230_PROTOCOL_TIMEOUT_MS 100      // 100ms未收到数据视为离线
 
@@ -114,7 +116,7 @@ static void ParseK230Protocol(const uint8_t *buf, uint16_t len)
  */
 static void K230RxCallback()
 {
-    HAL_GPIO_WritePin(GPIOH, GPIO_PIN_12, GPIO_PIN_RESET); // 点亮LED指示灯
+    HAL_GPIO_WritePin(GPIOH, GPIO_PIN_12, GPIO_PIN_SET); // 点亮LED指示灯
     // 检查帧头帧尾
     uint8_t *buf = K230_usart_instance->recv_buff;
     uint16_t len = K230_usart_instance->recv_buff_size;
@@ -129,6 +131,7 @@ static void K230RxCallback()
         uint16_t frame_len = end - start + 1;
         ParseK230Protocol(start, frame_len);
     }
+    K230_data.k230_application_callback(); // 调用应用层回调函数
 }
 
 /**
@@ -145,7 +148,7 @@ static void K230LostCallback(void *id)
  * @param huart 串口句柄
  * @return K230_data_t* 返回K230数据指针
  */
-K230_data_t *K230ProtocolInit(UART_HandleTypeDef *huart)
+K230_data_t *K230ProtocolInit(UART_HandleTypeDef *huart, void (*application_callback)(void))
 {
     USART_Init_Config_s conf = {
         .module_callback = K230RxCallback,
@@ -153,7 +156,7 @@ K230_data_t *K230ProtocolInit(UART_HandleTypeDef *huart)
         .recv_buff_size = K230_PROTOCOL_MAX_FRAME_SIZE,
     };
     K230_usart_instance = USARTRegister(&conf);
-
+    K230_data.k230_application_callback = application_callback;
     K230_init_flag = 1;
     return &K230_data;
 }

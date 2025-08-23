@@ -2038,9 +2038,15 @@ static float pitch_circle[500] = {
 ,1.200000000000000000e+02
 };
 
+static void syncWithVisionSystem(void)
+{
+    aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 1);
+    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);
+}
+
 void cmd_init()
 {
-    K230_data = K230ProtocolInit(&huart1);
+    K230_data = K230ProtocolInit(&huart1, syncWithVisionSystem);
     // laser_c laser_config = {
     //     .laser_tim_driver = &htim3,
     //     .Channel = TIM_CHANNEL_3
@@ -2082,7 +2088,7 @@ static void K230_todo()
                 // laser_disable();
                 // HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
             }
-            yaw_cmd = 0.16 * K230_data->color_det.x + aligned_total_yaw;
+            yaw_cmd = 0.15 * K230_data->color_det.x + aligned_total_yaw;
             pitch_cmd = - 0.12 * K230_data->color_det.y + aligned_total_pitch;
         }else
         {
@@ -2138,8 +2144,7 @@ void cmd_task()
     // YSKp = cmd_ui_recv.yaw_motor.SKp;
     // PAKp = cmd_ui_recv.pitch_motor.AKp;
     // PSKp = cmd_ui_recv.pitch_motor.SKp;
-    aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 85);
-    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 85);
+    
     K230_todo();
     // task_sin();
     // task_circle();
