@@ -9,7 +9,8 @@
         "daemon.h": "c",
         "compare": "c",
         "cstdint": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "freertos.h": "c"
     },
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",

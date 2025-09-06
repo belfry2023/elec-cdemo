@@ -128,7 +128,7 @@ void oled_ui_init(void) {
     OLED_Init();
     
     // 创建页面
-    Page mainPage, settingsPage;
+    static Page mainPage, settingsPage;
     
     // 配置主页面
     Page_Init_Config main_config = {

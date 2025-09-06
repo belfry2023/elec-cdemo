@@ -2044,7 +2044,7 @@ static float pitch_circle[500] = {
 void syncWithVisionSystem()
 {
     aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 1);
-    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);    
+    aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);
 }
 
 void cmd_init()
@@ -2169,13 +2169,14 @@ static void core_task()
     // task_circle();
 }
 
+
 void cmd_task()
 {
     SubGetMessage(gimbal_feed_sub, &gimbal_fetch_data);
     SubGetMessage(shoot_feed_sub, &shoot_fetch_data);
     SubGetMessage(chassis_feed_sub, &chassis_fetch_data);
     SubGetMessage(cmd_ui_sub,&cmd_ui_recv);
-
+    
     parameter_acceptance();
 
     core_task();

@@ -133,7 +133,6 @@ void shoot_task()
     SubGetMessage(shoot_sub, (&shoot_cmd_recv));
     v = shoot_cmd_recv.fricl.spd; // 摩擦轮速度
     core_task();
-
     PubPushMessage(shoot_pub, (void *)&shoot_feedback_data);
     PubPushMessage(shoot_ui_pub,&shoot_feeddata_ui);
 }
