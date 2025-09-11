@@ -7,6 +7,11 @@
 // #include "module_laser.h"
 #include "arm_math.h"
 #include "OLED.h"
+
+#include "CAN_supercap_communication.h"
+
+static SuperCap_s *supercap;
+
 static Publisher_t *chassis_cmd_pub;            
 static Subscriber_t *chassis_feed_sub;          
 static Publisher_t *gimbal_cmd_pub;            
@@ -2049,6 +2054,7 @@ void syncWithVisionSystem()
 
 void cmd_init()
 {
+    supercap = SuperCapInit(&hcan1);
     K230_data = K230ProtocolInit(&huart1,syncWithVisionSystem);
     // laser_c laser_config = {
     //     .laser_tim_driver = &htim3,
@@ -2165,8 +2171,10 @@ static void parameter_passing()
 static void core_task()
 {
     // K230_todo();
-    task_sin();
+    // task_sin();
     // task_circle();
+    supercap->TX_Temp.Enable = ENABLE;
+    supercap->TX_Temp.Powerlimit = 45;
 }
 
 

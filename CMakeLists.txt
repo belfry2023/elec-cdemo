@@ -75,6 +75,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/laser/module_laser.c
     Modules/ui/module_ui.c
     Modules/dm-imu/module_dm-imu.c
+    Modules/super_cap/CAN_supercap_communication.c
     Application/task_init.c
     Application/chassis/app_chassis.c
     Application/cmd/app_cmd.c
@@ -108,6 +109,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/dm-imu
     Modules/laser
     Modules/buffer
+    Modules/super_cap
     Application
     Application/chassis
     Application/cmd
