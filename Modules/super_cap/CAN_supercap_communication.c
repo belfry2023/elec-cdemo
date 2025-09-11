@@ -19,7 +19,8 @@
 #include "CAN_supercap_communication.h"
 #include "main.h"
 #include "stdint.h"
-
+#include <string.h>
+#include <stdlib.h>
 static SuperCap_s *SuperCap = NULL;
 
 /**
@@ -119,12 +120,10 @@ void set_supercap_power_offset(uint8_t offset){
   */
 void SuperCapSend(SuperCap_s *instance)
 {
-  uint8_t CAN_tx_data[8];
-  CAN_tx_data[0] = SuperCap->TX_Temp.Enable;
-  CAN_tx_data[1] = SuperCap->TX_Temp.Charge;
-  CAN_tx_data[2] = SuperCap->TX_Temp.Powerlimit - SuperCap->PowerOffset;
-  CAN_tx_data[3] = SuperCap->TX_Temp.ChargePower;
-  memcpy(instance->can_ins->tx_buff, CAN_tx_data, 8);
+  instance->can_ins->tx_buff[0] = SuperCap->TX_Temp.Enable;
+  instance->can_ins->tx_buff[1] = SuperCap->TX_Temp.Charge;
+  instance->can_ins->tx_buff[2] = SuperCap->TX_Temp.Powerlimit - SuperCap->PowerOffset;
+  instance->can_ins->tx_buff[3] = SuperCap->TX_Temp.ChargePower;
   CANTransmit(instance->can_ins,1);
 }
 

@@ -2175,6 +2175,7 @@ static void core_task()
     // task_circle();
     supercap->TX_Temp.Enable = ENABLE;
     supercap->TX_Temp.Powerlimit = 45;
+    SuperCapSend(supercap);
 }
 
 
