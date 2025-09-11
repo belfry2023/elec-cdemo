@@ -70,7 +70,8 @@ typedef enum
 
 typedef enum{
     pid_control = 0,
-    adrc_control = 1
+    adrc_control = 1,
+    power_control = 2
 }control_mode;
 
 
@@ -95,7 +96,7 @@ typedef struct
     float *other_speed_feedback_ptr;
     float *speed_feedforward_ptr;
     float *current_feedforward_ptr;
-
+    float power_out;
     PIDInstance current_PID;
     PIDInstance speed_PID;
     PIDInstance angle_PID;

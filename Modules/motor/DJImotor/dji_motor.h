@@ -92,6 +92,9 @@ DJIMotorInstance *DJIMotorInit(Motor_Init_Config_s *config);
  */
 void DJIMotorSetRef(DJIMotorInstance *motor, float ref);
 
+
+void DJIMotorSetCur(DJIMotorInstance *motor, float speed_pid_out);
+
 /**
  * @brief 切换反馈的目标来源,如将角速度和角度的来源换为IMU(小陀螺模式常用)
  *

@@ -264,6 +264,11 @@ void DJIMotorSetRef(DJIMotorInstance *motor, float ref)
     motor->motor_controller.pid_ref = ref;
 }
 
+void DJIMotorSetCur(DJIMotorInstance *motor, float speed_pid_out)
+{
+    motor->motor_controller.power_out = speed_pid_out;
+}
+
 // 为所有电机实例计算三环PID,发送控制报文
 void DJIMotorControl()
 {
@@ -289,7 +294,7 @@ void DJIMotorControl()
 
         // pid_ref会顺次通过被启用的闭环充当数据的载体
         // 计算位置环,只有启用位置环且外层闭环为位置时会计算速度环输出
-        if(motor_setting->mode == pid_control)
+        if(motor_setting->mode == pid_control || power_control)
         {
             if ((motor_setting->close_loop_type & ANGLE_LOOP) && motor_setting->outer_loop_type == ANGLE_LOOP)
             {
@@ -315,6 +320,10 @@ void DJIMotorControl()
                 pid_ref = PIDCalculate(&motor_controller->speed_PID, pid_measure, pid_ref);
             }
 
+            if(motor_setting->mode == power_control)
+            {
+                pid_ref = motor_controller->power_out;
+            }
             // 计算电流环,目前只要启用了电流环就计算,不管外层闭环是什么,并且电流只有电机自身传感器的反馈
             if (motor_setting->feedforward_flag & CURRENT_FEEDFORWARD)
                 pid_ref += *motor_controller->current_feedforward_ptr;

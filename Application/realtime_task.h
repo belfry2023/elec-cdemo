@@ -40,53 +40,37 @@ void OSTaskInit()
 __attribute__((noreturn)) void StartINSTASK(void const *argument)
 {
     INS_Init(); // 确保BMI088被正确初始化.
-    static uint32_t ins_cnt;
     for (;;)
     {
-        ins_cnt = 1;
         INS_Task();
-        // IMU_Task();
-        ins_cnt = 0;
         osDelay(1);
-        ins_cnt = 2;
     }
 }
 
 __attribute__((noreturn)) void StartTESTTASK(void const *argument)
 {
-    static uint32_t test_cnt;
     for (;;)
     {
-        test_cnt = 1;
         task_run();
-        test_cnt = 0;
         osDelay(1);
-        test_cnt = 2;
     }
 }
 
 __attribute__((noreturn)) void StartMOTORTASK(void const *argument)
 {
-    static uint32_t motor_cnt;
+
     for (;;)
     {
-        motor_cnt = 1;
         MotorControlTask();
-        motor_cnt = 0;
         osDelay(1);
-        motor_cnt = 2;
     }
 }
 
 __attribute__((noreturn)) void StartDAEMONTASK(void const *argument)
 {
-    static uint32_t daemon_cnt;
     for (;;)
     {
-        daemon_cnt = 1;
         DaemonTask();
-        daemon_cnt = 0;
         osDelay(10);
-        daemon_cnt = 2;
     }
 }

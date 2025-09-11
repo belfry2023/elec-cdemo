@@ -8,10 +8,6 @@
 #include "arm_math.h"
 #include "OLED.h"
 
-#include "CAN_supercap_communication.h"
-
-static SuperCap_s *supercap;
-
 static Publisher_t *chassis_cmd_pub;            
 static Subscriber_t *chassis_feed_sub;          
 static Publisher_t *gimbal_cmd_pub;            
@@ -24,8 +20,8 @@ static Gimbal_Ctrl_Cmd_s gimbal_cmd_send;
 static Gimbal_Upload_Data_s gimbal_fetch_data; 
 static Shoot_Ctrl_Cmd_s shoot_cmd_send;      
 static Shoot_Upload_Data_s shoot_fetch_data; 
-static chassis_state_t chassis_fetch_data;
-static chassis_control_t chassis_cmd_send;      
+static Chassis_Upload_CMD_s chassis_fetch_data;
+static Chassis_Ctrl_Cmd_s chassis_cmd_send;      
 static CMD_Ctrl_UI_s cmd_ui_recv;
 static CMD_Upload_UI_s cmd_feedback_ui;
 // static laser_t *Laser;
@@ -2054,7 +2050,6 @@ void syncWithVisionSystem()
 
 void cmd_init()
 {
-    supercap = SuperCapInit(&hcan1);
     K230_data = K230ProtocolInit(&huart1,syncWithVisionSystem);
     // laser_c laser_config = {
     //     .laser_tim_driver = &htim3,
@@ -2065,8 +2060,8 @@ void cmd_init()
     HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
     buffer_yaw = BUFRegister();
     buffer_pitch = BUFRegister();
-    chassis_cmd_pub = PubRegister("chassis_control", sizeof(chassis_control_t));
-    chassis_feed_sub = SubRegister("chassis_state", sizeof(chassis_state_t));
+    chassis_cmd_pub = PubRegister("chassis_control", sizeof(Chassis_Ctrl_Cmd_s));
+    chassis_feed_sub = SubRegister("chassis_state", sizeof(Chassis_Upload_CMD_s));
     gimbal_cmd_pub = PubRegister("gimbal_cmd", sizeof(Gimbal_Ctrl_Cmd_s));
     gimbal_feed_sub = SubRegister("gimbal_feed", sizeof(Gimbal_Upload_Data_s));
     cmd_ui_sub = SubRegister("ui_ctrl_cmd",sizeof(CMD_Ctrl_UI_s));
@@ -2173,9 +2168,6 @@ static void core_task()
     // K230_todo();
     // task_sin();
     // task_circle();
-    supercap->TX_Temp.Enable = ENABLE;
-    supercap->TX_Temp.Powerlimit = 45;
-    SuperCapSend(supercap);
 }
 
 

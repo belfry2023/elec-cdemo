@@ -3,6 +3,9 @@
 
 #include "stdint.h"
 
+#define OK 1
+#define NO 0
+
 #pragma pack(1)
 
 typedef struct 
@@ -10,6 +13,7 @@ typedef struct
     float spd;
     float dir;
     float tor;
+    float speed_pid_out;
     float err;
     float AKp;
     float SKp;
@@ -22,11 +26,13 @@ typedef enum{
 }shoot_mode;
 
 // cmd控制结构体
-typedef struct chassis_control_s
+typedef struct
 {
     float w;
     float v;
-} chassis_control_t;
+} Chassis_Ctrl_Cmd_s;
+
+
 
 typedef struct
 {
@@ -54,6 +60,12 @@ typedef struct
     motor_data pitch_motor;
     /* data */
 }CMD_Ctrl_UI_s;
+
+typedef struct 
+{
+    motor_data motor[4];
+    /* data */ 
+} CAP_Ctrl_Chassis_s;
 
 /* *************************** */
 
@@ -103,10 +115,19 @@ typedef struct
     
 }Shoot_Upload_Data_s;
 
-typedef struct chassis_state_s
+typedef struct
 {
     
-}chassis_state_t;
+}Chassis_Upload_CMD_s;
+
+typedef struct
+{
+    motor_data motor[4];
+    uint8_t SuperCapReady;
+    uint16_t ChassisPower;
+    /* data */
+}Chassis_Upload_CAP_s;
+
 
 #pragma pack()
 

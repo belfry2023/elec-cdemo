@@ -73,7 +73,7 @@ static void SuperCapRxCallback(CANInstance *_instance)
 {
     uint8_t *rxbuff;
     rxbuff = (uint8_t*)_instance->rx_buff;
-    get_supercap_online_state();
+    // get_supercap_online_state();
     transfer_SuperCap_measure(rxbuff);
 }
 

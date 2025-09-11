@@ -82,6 +82,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Application/gimbal/app_gimbal.c
     Application/ui/app_ui.c
     Application/shoot/app_shoot.c
+    Application/chassis/chassis_power_control_with_supercap.c
 )
 
 # Add include paths

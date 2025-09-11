@@ -311,7 +311,7 @@ void oled_ui_init(void)
     
     SetMotor();
 
-    chassis_feed_sub = SubRegister("chassis_feed_ui", sizeof(chassis_state_t));
+    chassis_feed_sub = SubRegister("chassis_feed_ui", sizeof(Chassis_Upload_UI_s));
     gimbal_feed_sub = SubRegister("gimbal_feed_ui", sizeof(Gimbal_Upload_UI_s));
     shoot_feed_sub = SubRegister("shoot_feed_ui", sizeof(Shoot_Upload_UI_s));
     cmd_feed_sub = SubRegister("cmd_feed_ui",sizeof(CMD_Upload_UI_s));
