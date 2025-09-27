@@ -2057,7 +2057,7 @@ void cmd_init()
     // };
     // Laser = laser_init(&laser_config);
     // laser_disable();
-    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
+    // HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
     buffer_yaw = BUFRegister();
     buffer_pitch = BUFRegister();
     chassis_cmd_pub = PubRegister("chassis_control", sizeof(Chassis_Ctrl_Cmd_s));

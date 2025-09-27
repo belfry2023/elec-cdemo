@@ -8,6 +8,7 @@
 #include "520motor.h"
 #include "CAN_supercap_communication.h"
 #include "chassis_power_control_with_supercap.h"
+#include "power_measure.h"
 static Subscriber_t *chassis_sub;
 static Publisher_t *chassis_pub; // 发布者实例指针
 static Chassis_Ctrl_Cmd_s chassis_cmd_recv; // 车的控制指令
@@ -22,6 +23,9 @@ static module_ir_t *ir = NULL;
 void chassis_init()
 {	
 	// 初始化底盘
+    INA226_Init(INA226_ADDR3);
+    INA226_Init(INA226_ADDR2);
+    INA226_Init(INA226_ADDR1);
     supercap = SuperCapInit(&hcan1);
     supercap->TX_Temp.Enable = DISABLE;
     supercap->TX_Temp.Powerlimit = 45;
@@ -96,7 +100,9 @@ static void parameter_acceptance()
 static void core_task()
 {
     SuperCapSend(supercap);
-
+    INA226_Read_Registers(INA226_ADDR3);
+    INA226_Read_Registers(INA226_ADDR2);
+    INA226_Read_Registers(INA226_ADDR1);
     CAP_Ctrl_Chassis_s *chassis_cap_recv = chassis_power_control_with_supercap(&chassis_feedback_cap);
     DJIMotorSetCur(motor_lf, chassis_cap_recv->motor[0].speed_pid_out);
     DJIMotorSetCur(motor_rf, chassis_cap_recv->motor[1].speed_pid_out);

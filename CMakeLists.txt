@@ -47,6 +47,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Bsp/daemon/daemon.c
     Bsp/dwt/bsp_dwt.c
+    Bsp/i2c/bsp_i2c.c
     Bsp/can/bsp_can.c
     Bsp/usart/bsp_usart.c
     Modules/general_def.c
@@ -76,6 +77,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/ui/module_ui.c
     Modules/dm-imu/module_dm-imu.c
     Modules/super_cap/CAN_supercap_communication.c
+    Modules/algorithm/filter.c
+    Modules/algorithm/filter32.c
+    Modules/ina226/power_measure.c
     Application/task_init.c
     Application/chassis/app_chassis.c
     Application/cmd/app_cmd.c
@@ -93,6 +97,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Bsp/dwt
     Bsp/usart
     Bsp/can
+    Bsp/i2c
     Modules
     Modules/oled
     Modules/imu
@@ -111,6 +116,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/laser
     Modules/buffer
     Modules/super_cap
+    Modules/ina226
     Application
     Application/chassis
     Application/cmd
