@@ -6,13 +6,13 @@
 #include "stdint.h"
 
 //使用软件IIC(使用硬件IIC时注释该行代码)
-#define Use_software_i2c
+// #define Use_software_i2c
 
 //使用I2C1时，修改为hi2c1
 #define Use_hi2c2
 #define ina226_i2c hi2c2
 
-#define Shunt_ohm 5 //单位毫欧
+#define Shunt_ohm 100 //单位毫欧
 #define Curren_LSB 1 //单位mA，电流寄存器最多可以用15位即2^15
 
 typedef struct

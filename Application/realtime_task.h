@@ -49,8 +49,10 @@ __attribute__((noreturn)) void StartINSTASK(void const *argument)
 
 __attribute__((noreturn)) void StartTESTTASK(void const *argument)
 {
+    static uint8_t Task_flag;
     for (;;)
     {
+        Task_flag = !Task_flag;
         task_run();
         osDelay(1);
     }

@@ -23,14 +23,12 @@ static module_ir_t *ir = NULL;
 void chassis_init()
 {	
 	// 初始化底盘
-    INA226_Init(INA226_ADDR3);
-    INA226_Init(INA226_ADDR2);
     INA226_Init(INA226_ADDR1);
     supercap = SuperCapInit(&hcan1);
     supercap->TX_Temp.Enable = DISABLE;
     supercap->TX_Temp.Powerlimit = 45;
 	Motor_Init_Config_s chassis_motor_config = {
-        .can_init_config.can_handle = &hcan1,
+        .can_init_config.can_handle = &hcan2,
         .controller_param_init_config = {
             .speed_PID = {
                 .Kp = 10, // 4.5
@@ -100,8 +98,6 @@ static void parameter_acceptance()
 static void core_task()
 {
     SuperCapSend(supercap);
-    INA226_Read_Registers(INA226_ADDR3);
-    INA226_Read_Registers(INA226_ADDR2);
     INA226_Read_Registers(INA226_ADDR1);
     CAP_Ctrl_Chassis_s *chassis_cap_recv = chassis_power_control_with_supercap(&chassis_feedback_cap);
     DJIMotorSetCur(motor_lf, chassis_cap_recv->motor[0].speed_pid_out);
