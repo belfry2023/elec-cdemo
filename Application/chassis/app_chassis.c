@@ -4,7 +4,6 @@
 #include "message_center.h"
 #include "task_def.h"
 #include "OLED.h"
-
 #include "dji_motor.h"
 #include "520motor.h"
 #include "CAN_supercap_communication.h"
@@ -128,5 +127,5 @@ void chassis_task()
     core_task();
     parameter_passing();
     PubPushMessage(chassis_pub, &chassis_feedback_cmd); // 发布车的状态
-    PubPushMessage(chassis_ui_pub,&chassis_feedback_ui);
+    PubPushMessage(chassis_ui_pub, &chassis_feedback_ui);
 }
