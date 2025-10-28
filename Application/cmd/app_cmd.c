@@ -7,6 +7,7 @@
 // #include "module_laser.h"
 #include "arm_math.h"
 #include "OLED.h"
+#include "smith_predictor.h"
 
 static Publisher_t *chassis_cmd_pub;            
 static Subscriber_t *chassis_feed_sub;          
@@ -30,6 +31,19 @@ static float yaw_cmd, pitch_cmd;
 static buf_t *buffer_yaw, *buffer_pitch;
 static float aligned_total_yaw, aligned_total_pitch;
 static float YAKp = 60, YSKp = 40, PAKp = 30, PSKp = 30;
+
+static const double dt = 0.001;           // 采样时间
+// 过程参数
+static const double process_gain = 1.0;
+static const double process_time_constant = 1.0;
+static const double process_delay = 0.1; // 0.1秒延迟    
+// 控制器参数
+static const double kp = 1000000.0;
+static const double ki = 0.2;
+static const double kd = 0.1;
+
+static SmithPredictor* smith;
+
 static float pitch_sin[500] = {
 9.000000000000000000e+01,
 9.037773662995370216e+01,
@@ -2046,10 +2060,19 @@ void syncWithVisionSystem()
 {
     aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 1);
     aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 1);
+    // smith_output = smith_predictor_update(smith, current_setpoint, process_output_smith);
 }
 
 void cmd_init()
 {
+
+    
+    
+    // 创建史密斯预估器
+    // smith = smith_predictor_create(kp, ki, kd, 
+    //                                 process_gain, process_time_constant, 
+    //                                 process_delay, dt);
+
     K230_data = K230ProtocolInit(&huart1,syncWithVisionSystem);
     // laser_c laser_config = {
     //     .laser_tim_driver = &htim3,

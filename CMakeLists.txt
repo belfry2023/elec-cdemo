@@ -79,6 +79,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/super_cap/CAN_supercap_communication.c
     Modules/algorithm/filter.c
     Modules/algorithm/filter32.c
+    Modules/algorithm/smith_predictor.c
     Modules/ina226/power_measure.c
     Application/task_init.c
     Application/chassis/app_chassis.c
