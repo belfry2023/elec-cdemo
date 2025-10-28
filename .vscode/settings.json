@@ -10,7 +10,9 @@
         "compare": "c",
         "cstdint": "c",
         "stdint.h": "c",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "referee_task.h": "c",
+        "rm_referee.h": "c"
     },
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",

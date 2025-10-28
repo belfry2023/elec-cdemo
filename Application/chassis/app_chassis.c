@@ -4,6 +4,7 @@
 #include "message_center.h"
 #include "task_def.h"
 #include "OLED.h"
+#include "referee_task.c"
 #include "dji_motor.h"
 #include "520motor.h"
 #include "CAN_supercap_communication.h"
@@ -19,6 +20,8 @@ static Chassis_Upload_UI_s chassis_feedback_ui;
 static DJIMotorInstance *motor_lf, *motor_rf, *motor_lb, *motor_rb; // left right forward back
 static SuperCap_s *supercap;
 static module_ir_t *ir = NULL;
+static referee_info_t *referee_data;       // 用于获取裁判系统的数据
+static Referee_Interactive_info_t ui_data; // UI数据，将底盘中的数据传入此结构体的对应变量中，UI会自动检测是否变化，对应显示UI
 
 void chassis_init()
 {	
@@ -73,6 +76,7 @@ void chassis_init()
     chassis_motor_config.controller_setting_init_config.motor_reverse_flag = MOTOR_DIRECTION_REVERSE;
     motor_rb = DJIMotorInit(&chassis_motor_config);
 
+    referee_data = UITaskInit(&huart1, &ui_data); // 裁判系统初始化,会同时初始化UI
     // MotorUSARTInit(&huart6);
 
 	// ir = ir_init();
@@ -89,16 +93,16 @@ void chassis_init()
 
 static void parameter_acceptance()
 {
-    set_chassis_power(50);
+    set_chassis_power(100);
     supercap->TX_Temp.Enable = ENABLE;
-    supercap->TX_Temp.Powerlimit = 45;
+    supercap->TX_Temp.Powerlimit = 120;
 
 }
 
 static void core_task()
 {
     SuperCapSend(supercap);
-    INA226_Read_Registers(INA226_ADDR1);
+    // INA226_Read_Registers(INA226_ADDR1);
     CAP_Ctrl_Chassis_s *chassis_cap_recv = chassis_power_control_with_supercap(&chassis_feedback_cap);
     DJIMotorSetCur(motor_lf, chassis_cap_recv->motor[0].speed_pid_out);
     DJIMotorSetCur(motor_rf, chassis_cap_recv->motor[1].speed_pid_out);

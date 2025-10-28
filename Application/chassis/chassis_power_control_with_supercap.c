@@ -55,7 +55,8 @@ CAP_Ctrl_Chassis_s *chassis_power_control_with_supercap(Chassis_Upload_CAP_s *ch
 
     // get_chassis_power_limit(&RefereePowerLimit);
     // get_chassis_power_and_buffer(NULL, &chassis_energy_buffer);
-	RefereePowerLimit = 50;
+	RefereePowerLimit = chassis_fetch_data->chassis_power_mx;
+	chassis_energy_buffer = chassis_fetch_data->buffer_energy;
 	chassis_energy_buffer = 100;
 
     if(get_supercap_online_state()){

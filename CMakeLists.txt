@@ -81,6 +81,10 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/algorithm/filter32.c
     Modules/algorithm/smith_predictor.c
     Modules/ina226/power_measure.c
+    Modules/referee/crc_ref.c
+    Modules/referee/referee_task.c
+    Modules/referee/referee_UI.c
+    Modules/referee/rm_referee.c
     Application/task_init.c
     Application/chassis/app_chassis.c
     Application/cmd/app_cmd.c
@@ -118,6 +122,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Modules/buffer
     Modules/super_cap
     Modules/ina226
+    Modules/referee
     Application
     Application/chassis
     Application/cmd
