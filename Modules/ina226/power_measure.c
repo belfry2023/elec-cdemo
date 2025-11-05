@@ -56,7 +56,7 @@ void INA226_Init(uint16_t Ina226_ID)
 
 #else //使用STM32硬件IIC
 
-	uint8_t temp[2] = {0x42, 0x07};
+	uint8_t temp[2] = {0x42, 0x27};
 	uint8_t cal[2];
 	uint16_t CAL;
 
