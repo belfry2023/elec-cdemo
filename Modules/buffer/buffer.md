@@ -2,130 +2,82 @@
 
 ## 核心概念
 
-1. **运行周期**：程序执行的时间间隔（FreeRTOS 任务周期或 while 循环周期），记为 $t$
-2. **存储区**：`buf_t` 结构体中的固定长度队列（`queue[256]`）
-3. **存储次数**：队列完全更新所需的调用次数，记为 $n$（**必须满足 $n < 256$**）
-4. **存储周期**：队列完全更新的时间跨度 $T = t \times n$
+1. **运行周期**：程序执行的时间间隔（FreeRTOS 任务周期或 while 循环周期），记为 t。
+2. **存储区**：`buf_t` 结构体中的固定长度队列（默认由宏 `BUFFER_SIZE` 决定，头文件中默认值为 32）。
+3. **存储次数**：调用时的延迟参数 time（对应文档中以前称为 n）。函数会在内部把超出范围的 time 截取为 `size - 1`。
+4. **存储周期**：队列完全更新的时间跨度 T = t × time。
 5. **数据流**：
    - 输入：实时数据 `data`
-   - 输出：$T$ 时间前存储的延迟数据
+   - 输出：time 周期前存储的延迟数据或通过其它 API 获取历史/滑窗统计
 
-## 使用方法
+## API 概览
+
+```c
+buf_t *BUFRegister(void);
+float BUFUpdata(buf_t *_buf, float n, uint8_t time);
+float BUFGetHistory(buf_t *_buf, uint8_t steps_back);
+float BUFMovingAverage(buf_t *_buf, uint8_t window_size);
+float BUFWeightedAverage(buf_t *_buf, const float *weights, uint8_t window_size);
+uint8_t BUFIsReady(buf_t *_buf);
+void BUFFree(buf_t *_buf);
+```
+
+## 使用方法（示例）
 
 ```c
 // 定义缓冲区指针
 static buf_t *buffer_yaw, *buffer_pitch; 
-// 接收延迟数据的变量
-static float aligned_total_yaw, aligned_total_pitch; 
+static float aligned_total_yaw, aligned_total_pitch;
 
-void init()
+void init(void)
 {
-    // 初始化缓冲区（自动清零内存）
+    // 分配并初始化缓冲区（malloc + memset）
     buffer_yaw = BUFRegister();
     buffer_pitch = BUFRegister();
 }
 
-void task() // 周期执行的任务（建议1KHz+）
+void task(void) // 周期执行的任务（示例）
 {
-    // 更新yaw缓冲区：存入当前值，获取85周期前的值
+    // 调用 BUFUpdata：存入当前值，并返回 time 周期前的值（若未准备好则返回 0）
     aligned_total_yaw = BUFUpdata(buffer_yaw, gimbal_fetch_data.yaw, 85);
-    
-    // 更新pitch缓冲区：存入当前值，获取85周期前的值
     aligned_total_pitch = BUFUpdata(buffer_pitch, gimbal_fetch_data.pitch, 85);
-    
-    // 此时 aligned_total_xxx 包含 T=85*t 前的历史数据
 }
 ```
 
-## 技术优势
-
-1. **高效循环队列**：
-   - O(1) 时间复杂度操作
-   - 避免内存重复分配
-   - 极低的内存开销（结构体仅 1KB）
-
-2. **相位精确控制**：
-
-   ```mermaid
-   timeline
-       title 时间对齐效果
-       周期 1 ： 存入数据A
-       周期 2 ： 存入数据B → 返回数据A
-       周期 n+1 ： 存入数据X → 返回数据A（当队列满时）
-   ```
-
-3. **跨场景适用**：
-   - 实时控制系统（1KHz+）
-   - 嵌入式环境（无动态内存分配）
-   - 时间敏感型应用
-
-## 典型应用场景
-
-### 1. 高阶预测滤波器
-
-```python
-# 伪代码示例：使用历史队列进行状态预测
-position = [p0, p1, p2, ..., pn]  # 从buffer获取
-velocity = (position[-1] - position[0]) / T
-acceleration = (velocity - prev_velocity) / T
-next_position = kalman_filter(position, velocity, acceleration)
-```
-
-### 2. 通信相位对齐
-
-**问题场景**：
-
-```mermaid
-graph LR
-    Vision[视觉处理] -->|延迟Δt| CAN[CAN总线]
-    CAN --> Motor[电机响应]
-    Motor --> Oscillation[系统震荡]
-```
-
-**Buffer解决方案**：
+## 读取历史与统计示例
 
 ```c
-// 电控端对齐视觉数据
-aligned_vision = BUFUpdata(vision_buf, raw_vision_data, calc_delay(Δt));
-set_motor_position(aligned_vision);  // 相位对齐的控制信号
+// 直接按步数读取历史数据（0 表示上一次写入的数据)
+float prev = BUFGetHistory(accel_buf, 0);
+
+// 移动平均（window_size 不得大于 buffer->size）
+float ma = BUFMovingAverage(accel_buf, 8);
+
+// 加权平均（weights 长度为 window_size）
+float weights[3] = {0.2f, 0.3f, 0.5f};
+float wa = BUFWeightedAverage(accel_buf, weights, 3);
 ```
 
-理论上这种方法在程序运行稳定时是可以通过调试来达到缩减相位差的作用，但是实际上程序的运行并不是一定稳定的，因此想要严格消除相位差，应该找到这个相位差在电控程序中对应的值或者等效的周期，而这种情况下电控接受视觉的串口中断的运行频率正好等于视觉结算发送的频率，通过在串口中断中设置buffer延迟一个程序周期，可以等效为将电控延迟了视觉一个处理周期，但是严格意义来说，电控也只是控制上一时刻的电机，通信所需要的硬件也有延迟，这个新的周期仅仅只是等效了视觉两次处理的时间差，不过这几乎消除了全部的相位差，但是这种只需要延迟一个周期的程序根本没必要使用buffer，使用buffer在时间上虽然影响不大，但是相当占用空间
+## 实现与行为要点
 
-### 3. 传感器数据窗口
+1. BUFRegister 会分配并清零一个 buf_t，默认字段：
+   - id：写索引
+   - od：读索引（实现里用于返回历史）
+   - size：等于宏 BUFFER_SIZE（默认 32）
+   - data_count：已写入的数据计数（最多为 size）
 
-```c
-// 创建加速度历史窗口
-buf_t *accel_buf = BUFRegister();
+2. BUFUpdata 的重要行为：
+   - 如果 !_buf 或 size == 0，BUFIsReady 返回假，BUFUpdata 返回 0.0f。
+   - 当 time >= size 时，内部会把 time 截取为 `size - 1`（安全保护）。
+   - BUFUpdata 会写入新数据并返回按照内部逻辑计算出的历史值（实现中使用 id/od 环绕索引）。
 
-while(1) {
-    float current_accel = read_accelerometer();
-    float window_accel = BUFUpdata(accel_buf, current_accel, 50);
-    
-    // 使用50点窗口数据进行FFT分析
-    fft_analysis(window_accel);  
-}
-```
+3. 安全与限制：
+   - 默认队列长度由 BUFFER_SIZE 控制；若需要更大历史深度，请在编译时定义更大的 BUFFER_SIZE。
+   - 虽然实现对 time 做了截断，但调用方应避免传入不合理的 time（例如远大于期望值），并在高可靠场景下做输入校验。
+   - 在不再使用时请调用 BUFFree 释放资源。
 
-## 注意事项
+## 性能与设计建议
 
-1. **初始化特性**：
-   - 前 $n$ 次调用返回 `0.0f`（缓冲区未满）
-   - $n+1$ 次后返回有效历史数据
-
-2. **关键限制**：
-
-   ```c
-   // 危险：n 必须小于 256！
-   BUFUpdata(buf, data, 255); // 合法
-   BUFUpdata(buf, data, 256); // 数组越界！
-   ```
-
-3. **性能特性**：
-   - 内存占用：1.03KB/buffer（含结构体开销）
-   - 执行时间：< 500ns（Cortex-M7 @ 480MHz）
-
-4. **设计建议**：
-   - 单缓冲区适用场景：$n$ < 50
-   - 大延迟需求：采用多级缓冲串联
-   - 时间戳方案：当 $t$ > 1ms 时建议改用硬件时钟对齐
+1. 单缓冲适用于小延迟需求（BUFFER_SIZE 默认 32）。
+2. 如果需要非常大的延迟或层级缓存，考虑多级缓冲或外部存储。
+3. 对实时系统，BUFIsReady 可用于检查返回值的有效性；若需严格不返回 0 值，必须额外判断 data_count 是否达到期望窗口大小。

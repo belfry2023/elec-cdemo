@@ -89,9 +89,9 @@ void chassis_init()
 
 static void parameter_acceptance()
 {
-    set_chassis_power(100);
+    set_chassis_power(45);
     supercap->TX_Temp.Enable = ENABLE;
-    supercap->TX_Temp.Powerlimit = 120;
+    supercap->TX_Temp.Powerlimit = 45;
 
 }
 

@@ -134,6 +134,8 @@ SuperCap_s *SuperCapInit(CAN_HandleTypeDef *can_handle)
   CAN_Init_Config_s can_config = {
     .can_handle = can_handle,
     .id = SUPERCAP_TX_ID,
+    .rx_id = SUPERCAP_RX_ID,
+    .tx_id = SUPERCAP_TX_ID,
     .can_module_callback = SuperCapRxCallback
   };
   
