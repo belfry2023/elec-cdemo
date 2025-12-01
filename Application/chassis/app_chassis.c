@@ -108,10 +108,14 @@ static void core_task()
 
 static void parameter_passing()
 {
-    chassis_feedback_cap.motor[0].spd = motor_lf->measure.speed_aps;
-    chassis_feedback_cap.motor[1].spd = motor_rf->measure.speed_aps;
-    chassis_feedback_cap.motor[2].spd = motor_lb->measure.speed_aps;
-    chassis_feedback_cap.motor[3].spd = motor_rb->measure.speed_aps;
+    // chassis_feedback_cap.motor[0].spd = motor_lf->measure.speed_aps;
+    // chassis_feedback_cap.motor[1].spd = motor_rf->measure.speed_aps;
+    // chassis_feedback_cap.motor[2].spd = motor_lb->measure.speed_aps;
+    // chassis_feedback_cap.motor[3].spd = motor_rb->measure.speed_aps;
+    chassis_feedback_cap.motor[0].spd = chassis_cmd_recv.w + chassis_cmd_recv.v;
+    chassis_feedback_cap.motor[1].spd = -chassis_cmd_recv.w + chassis_cmd_recv.v;
+    chassis_feedback_cap.motor[2].spd = chassis_cmd_recv.w - chassis_cmd_recv.v;
+    chassis_feedback_cap.motor[3].spd = -chassis_cmd_recv.w - chassis_cmd_recv.v;
     chassis_feedback_cap.motor[0].speed_pid_out = motor_lf->motor_controller.speed_PID.Output;
     chassis_feedback_cap.motor[1].speed_pid_out = motor_rf->motor_controller.speed_PID.Output;
     chassis_feedback_cap.motor[2].speed_pid_out = motor_lb->motor_controller.speed_PID.Output;
